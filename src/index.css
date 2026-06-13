@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 225 19% 5%;
+    --foreground: 0 0% 100%;
+    --card: 226 17% 8%;
+    --card-foreground: 0 0% 100%;
+    --popover: 226 17% 8%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 184 100% 50%;
+    --primary-foreground: 225 19% 5%;
+    --secondary: 227 21% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 227 21% 12%;
+    --muted-foreground: 220 14% 60%;
+    --accent: 279 100% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 226 24% 15%;
+    --input: 226 24% 15%;
+    --ring: 184 100% 50%;
+    --radius: 0.625rem;
+  }
+
+  body {
+    @apply bg-best-bg text-best-text antialiased;
+    font-family: 'Inter', sans-serif;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(176, 38, 255, 0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(0, 240, 255, 0.05), transparent);
+    background-attachment: fixed;
+  }
+
+  * {
+    @apply border-best-border;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  ::selection {
+    background: rgba(0, 240, 255, 0.3);
+    color: #ffffff;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  .font-heading {
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  .text-glow-cyan {
+    text-shadow: 0 0 20px rgba(0, 240, 255, 0.6), 0 0 60px rgba(0, 240, 255, 0.3);
+  }
+
+  .text-glow-purple {
+    text-shadow: 0 0 20px rgba(176, 38, 255, 0.6), 0 0 60px rgba(176, 38, 255, 0.3);
+  }
+
+  .text-glow-gold {
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.3);
+  }
+
+  .text-gradient-neon {
+    background: linear-gradient(100deg, #00f0ff 0%, #b026ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .border-gradient-neon {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(#11131a, #11131a) padding-box,
+      linear-gradient(120deg, rgba(0, 240, 255, 0.6), rgba(176, 38, 255, 0.6)) border-box;
+  }
+
+  .glass-panel {
+    background: rgba(17, 19, 26, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+}
