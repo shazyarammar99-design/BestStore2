@@ -36,14 +36,19 @@ export default function SignupPage() {
       return;
     }
     setSubmitting(true);
-    const { error } = await signUp(email, password);
+    const { error, session } = await signUp(email, password);
     setSubmitting(false);
     if (error) {
       toast.error(error);
       return;
     }
+    if (session) {
+      toast.success(t('auth.welcomeBack'));
+      router.push('/account');
+      return;
+    }
     toast.success(t('auth.accountCreated'));
-    router.push('/');
+    router.push('/login');
   };
 
   return (

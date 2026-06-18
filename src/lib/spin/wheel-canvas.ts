@@ -19,7 +19,10 @@ export function easeOutCubic(t: number): number {
   return 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
 }
 
-export function getSpinDuration(reducedMotion: boolean): number {
+export function getSpinDuration(reducedMotion: boolean, customMs?: number): number {
+  if (customMs && customMs > 0) {
+    return reducedMotion ? Math.min(customMs, SPIN_DURATION_REDUCED_MS) : customMs;
+  }
   return reducedMotion ? SPIN_DURATION_REDUCED_MS : SPIN_DURATION_MS;
 }
 

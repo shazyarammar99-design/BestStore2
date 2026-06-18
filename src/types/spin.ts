@@ -41,6 +41,8 @@ export type SpinStatus = {
   monthlySpinGranted?: number;
   oddsMeta: SpinOddsMeta;
   prizes: SpinPrizeRow[];
+  extraTurns: number;
+  spinDurationMs: number;
 };
 
 export type MathChallengeResponse = {
@@ -75,4 +77,5 @@ export interface SpinWheelCanvasProps {
   onHubClick?: () => void;
   spinDisabled?: boolean;
   onSpinTransitionEnd?: () => void;
+  spinDurationMs?: number;
 }

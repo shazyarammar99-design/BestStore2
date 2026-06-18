@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { MIN_PURCHASE_IQD_FOR_SPIN, SPIN_TEST_MODE } from '@/config/spin';
+import { SPIN_TEST_MODE } from '@/config/spin';
 import { SPIN_ODDS_META } from '@/config/spin-prizes';
 import { verifyMathChallenge } from '@/lib/captcha';
 import { rateLimit } from '@/lib/rate-limit';
@@ -8,6 +8,7 @@ import { getAuthenticatedUser } from '@/lib/supabase/route-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { pickWeightedPrize, prizeSegmentIndex } from '@/lib/spin/weighted-random';
 import { spinRequestSchema } from '@/lib/validation/spin';
+import { DEFAULT_SPIN_SETTINGS } from '@/types/site-settings';
 
 function utcToday(): string {
   return new Date().toISOString().slice(0, 10);
@@ -60,7 +61,8 @@ function buildSpinStatusPayload(
     probability_weight: number;
     winPercent: number;
   }>,
-  loggedIn: boolean
+  loggedIn: boolean,
+  spinSettings: { extraTurns: number; spinDurationMs: number; minPurchaseIqd: number }
 ) {
   const canUseSpinToday = SPIN_TEST_MODE
     ? loggedIn
@@ -71,7 +73,7 @@ function buildSpinStatusPayload(
     nextSpinAt: SPIN_TEST_MODE ? null : spunToday && loggedIn ? utcMidnightTomorrow() : null,
     spinCredits: SPIN_TEST_MODE ? 1 : spinCredits,
     requiresPurchase: SPIN_TEST_MODE ? false : loggedIn && spinCredits === 0,
-    minPurchaseIqd: MIN_PURCHASE_IQD_FOR_SPIN,
+    minPurchaseIqd: spinSettings.minPurchaseIqd,
     nextFreeSpinAt: SPIN_TEST_MODE ? null : loggedIn ? nextFreeSpinAt : null,
     monthlySpinGranted,
     oddsMeta: {
@@ -79,7 +81,19 @@ function buildSpinStatusPayload(
       nextReview: SPIN_ODDS_META.nextReview,
     },
     prizes,
+    extraTurns: spinSettings.extraTurns,
+    spinDurationMs: spinSettings.spinDurationMs,
   };
+}
+
+async function loadSpinSettings(admin: NonNullable<ReturnType<typeof createAdminClient>>) {
+  const { data } = await admin
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'spin')
+    .maybeSingle();
+
+  return { ...DEFAULT_SPIN_SETTINGS, ...(data?.value as object) };
 }
 
 export async function GET(request: Request) {
@@ -110,9 +124,11 @@ export async function GET(request: Request) {
         : 0,
   }));
 
+  const spinSettings = await loadSpinSettings(admin);
+
   if (!user) {
     return NextResponse.json(
-      buildSpinStatusPayload(0, false, null, 0, prizeRows, false)
+      buildSpinStatusPayload(0, false, null, 0, prizeRows, false, spinSettings)
     );
   }
 
@@ -137,7 +153,8 @@ export async function GET(request: Request) {
       monthly.nextFreeSpinAt,
       monthly.grantedCount,
       prizeRows,
-      true
+      true,
+      spinSettings
     )
   );
 }
@@ -187,10 +204,12 @@ export async function POST(request: Request) {
   }
 
   const spinCredits = monthly.spinCredits;
+  const spinSettings = await loadSpinSettings(admin);
+
   if (!SPIN_TEST_MODE && spinCredits <= 0) {
     return NextResponse.json(
       {
-        error: `Purchase at least ${MIN_PURCHASE_IQD_FOR_SPIN.toLocaleString()} IQD to unlock spins.`,
+        error: `Purchase at least ${spinSettings.minPurchaseIqd.toLocaleString()} IQD to unlock spins.`,
       },
       { status: 403 }
     );

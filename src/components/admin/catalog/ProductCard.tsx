@@ -104,7 +104,7 @@ export default function ProductCard({
       ) : (
         <button
           type="button"
-          className="min-h-11 min-w-8 shrink-0 cursor-grab touch-manipulation text-best-caption active:cursor-grabbing"
+          className="min-h-11 min-w-8 shrink-0 cursor-grab touch-none select-none text-best-caption active:cursor-grabbing"
           {...attributes}
           {...listeners}
           aria-label="Drag to reorder"

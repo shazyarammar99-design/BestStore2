@@ -124,7 +124,13 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
 
       const spinResult = data as SpinResult & { spinCreditsRemaining?: number };
       const count = segments.length || 1;
-      const target = computeSpinTargetRotation(baseRotation, spinResult.segmentIndex, count);
+      const extraTurns = status?.extraTurns ?? 7;
+      const target = computeSpinTargetRotation(
+        baseRotation,
+        spinResult.segmentIndex,
+        count,
+        extraTurns
+      );
 
       setResult(spinResult);
       setWinningIndex(spinResult.segmentIndex);
@@ -187,6 +193,7 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
               onHubClick={canSpin ? handleSpin : undefined}
               spinDisabled={spinDisabled}
               onSpinTransitionEnd={handleSpinTransitionEnd}
+              spinDurationMs={status?.spinDurationMs}
             />
           )}
 

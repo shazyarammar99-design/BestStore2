@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useBrandingSettings } from '@/hooks/useSiteSettings';
 
 type Size = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -18,15 +21,17 @@ export default function BrandMark({
   href?: string;
   className?: string;
 }) {
+  const { settings } = useBrandingSettings();
+
   return (
     <Link
       href={href}
-      aria-label="BEST STORE — Home"
+      aria-label={`${settings.siteName} — Home`}
       className={`inline-block transition-transform duration-300 hover:scale-[1.04] ${className}`}
     >
       <img
-        src="/brand/logo.png"
-        alt="BEST"
+        src={settings.logoUrl}
+        alt={settings.siteName}
         className={`${SIZES[size]} w-auto object-contain`}
       />
     </Link>

@@ -1,12 +1,21 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import AppShell from '@/components/AppShell';
+import { getBrandingSettings } from '@/lib/site-settings';
 
-export const metadata: Metadata = {
-  title: 'BEST STORE — Premium Gaming Marketplace',
-  description:
-    'The premium marketplace for in-game currency, elite accounts, and digital assets — delivered instantly with local IQD payments.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await getBrandingSettings();
+  const icons = branding.faviconUrl
+    ? { icon: [{ url: branding.faviconUrl }] }
+    : undefined;
+
+  return {
+    title: `${branding.siteName} — Premium Gaming Marketplace`,
+    description:
+      'The premium marketplace for in-game currency, elite accounts, and digital assets — delivered instantly with local IQD payments.',
+    icons,
+  };
+}
 
 export default function RootLayout({
   children,
