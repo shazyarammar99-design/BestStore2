@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useFormatCurrency, useTranslation } from '@/context/LocaleContext';
 import { useStore } from '@/context/StoreContext';
 import { calculateCheckoutPricing } from '@/lib/checkout-pricing';
+import type { SpinRewardSelection } from '@/lib/checkout-pricing';
 import { type PaymentMethod } from '@/lib/payment-methods';
 
 function CheckoutSteps() {
@@ -45,10 +46,11 @@ export default function CartCheckoutPage({
   const [deliveryValues, setDeliveryValues] = useState<Record<string, string>>({});
   const [sellerNotes, setSellerNotes] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [appliedReward, setAppliedReward] = useState<SpinRewardSelection | null>(null);
 
   const pricing = useMemo(
-    () => calculateCheckoutPricing(totalPrice, appliedPromo),
-    [totalPrice, appliedPromo]
+    () => calculateCheckoutPricing(totalPrice, appliedPromo, appliedReward),
+    [totalPrice, appliedPromo, appliedReward]
   );
 
   const handler = useCheckoutHandler({
@@ -127,6 +129,8 @@ export default function CartCheckoutPage({
                   onSellerNotesChange={setSellerNotes}
                   appliedPromo={appliedPromo}
                   onApplyPromo={setAppliedPromo}
+                  appliedReward={appliedReward}
+                  onApplyReward={setAppliedReward}
                   updateQuantity={updateQuantity}
                   removeItem={removeItem}
                 />

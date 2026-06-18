@@ -5,6 +5,22 @@ export type Prize = {
   image_url: string | null;
   value: number;
   active: boolean;
+  prize_type?: import('@/lib/spin/prize-effects').PrizeType;
+};
+
+export type InventoryPrize = {
+  id: string;
+  name: string;
+  prize_type: import('@/lib/spin/prize-effects').PrizeType;
+  value: number;
+  image_url: string | null;
+};
+
+export type InventoryItem = {
+  inventoryId: string;
+  quantity: number;
+  wonAt: string;
+  prize: InventoryPrize;
 };
 
 export type SpinResult = {
@@ -43,6 +59,7 @@ export type SpinStatus = {
   prizes: SpinPrizeRow[];
   extraTurns: number;
   spinDurationMs: number;
+  testMode: boolean;
 };
 
 export type MathChallengeResponse = {

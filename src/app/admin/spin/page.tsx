@@ -17,6 +17,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import ImageUploadField from '@/components/admin/ImageUploadField';
+import { PRIZE_TYPES, type PrizeType } from '@/lib/spin/prize-effects';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type PrizeRow = {
   id: string;
@@ -25,6 +33,7 @@ type PrizeRow = {
   image_url: string | null;
   value: number;
   active: boolean;
+  prize_type: PrizeType;
   winPercent: number;
 };
 
@@ -35,6 +44,7 @@ type PrizeForm = {
   value: number;
   image_url: string;
   active: boolean;
+  prize_type: PrizeType;
 };
 
 const emptyPrize = (): PrizeForm => ({
@@ -43,6 +53,7 @@ const emptyPrize = (): PrizeForm => ({
   value: 0,
   image_url: '',
   active: true,
+  prize_type: 'fixed_off',
 });
 
 export default function AdminSpinPage() {
@@ -99,6 +110,7 @@ export default function AdminSpinPage() {
       value: p.value,
       image_url: p.image_url ?? '',
       active: p.active,
+      prize_type: p.prize_type ?? 'fixed_off',
     });
     setOpen(true);
   };
@@ -116,6 +128,7 @@ export default function AdminSpinPage() {
       value: editing.value,
       image_url: editing.image_url || null,
       active: editing.active,
+      prize_type: editing.prize_type,
     };
 
     const isNew = !editing.id;
@@ -165,6 +178,37 @@ export default function AdminSpinPage() {
           Manage prizes, odds, and wheel animation settings.
         </p>
       </div>
+
+      <section className="rounded-xl border border-best-border bg-best-elevated p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="font-heading text-lg font-bold text-white">Spin mode</h2>
+            <p className="mt-1 max-w-xl text-sm text-best-muted">
+              Test mode lets you spin without credits, daily limits, or saving prizes to inventory.
+              Turn it off for live production rules.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg border border-best-border bg-best-bg px-4 py-3">
+            <Switch
+              checked={settings.testMode}
+              onCheckedChange={(v) => setSettings({ ...settings, testMode: v })}
+            />
+            <div>
+              <Label className="text-white">
+                {settings.testMode ? 'Test mode' : 'Live mode'}
+              </Label>
+              <p className="text-xs text-best-caption">
+                {settings.testMode ? 'Unlimited test spins' : 'Real credits & limits'}
+              </p>
+            </div>
+          </div>
+        </div>
+        {settings.testMode && (
+          <p className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-300">
+            Test mode is ON — customers can spin freely. Disable before going live.
+          </p>
+        )}
+      </section>
 
       <section className="rounded-xl border border-best-border bg-best-elevated p-6">
         <h2 className="font-heading text-lg font-bold text-white">Wheel settings</h2>
@@ -235,7 +279,8 @@ export default function AdminSpinPage() {
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-white">{p.name}</p>
                 <p className="text-xs text-best-muted">
-                  Weight {p.probability_weight} · {p.winPercent}% chance · Value {p.value}
+                  Weight {p.probability_weight} · {p.winPercent}% chance · Value {p.value} ·{' '}
+                  {p.prize_type.replace('_', ' ')}
                   {!p.active && ' · Inactive'}
                 </p>
               </div>
@@ -288,6 +333,26 @@ export default function AdminSpinPage() {
                   }
                   className="mt-1 bg-best-bg"
                 />
+              </div>
+              <div>
+                <Label>Prize type</Label>
+                <Select
+                  value={editing.prize_type}
+                  onValueChange={(v) =>
+                    setEditing({ ...editing, prize_type: v as PrizeType })
+                  }
+                >
+                  <SelectTrigger className="mt-1 bg-best-bg">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIZE_TYPES.map((pt) => (
+                      <SelectItem key={pt.value} value={pt.value}>
+                        {pt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Prize value</Label>

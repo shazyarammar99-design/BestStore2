@@ -2,13 +2,20 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/admin/require-admin';
 
+import { PRIZE_TYPES, type PrizeType } from '@/lib/spin/prize-effects';
+
+function parsePrizeType(raw: unknown): PrizeType | null {
+  const t = String(raw ?? 'fixed_off');
+  return PRIZE_TYPES.some((p) => p.value === t) ? (t as PrizeType) : null;
+}
+
 export async function GET(request: Request) {
   const auth = await requireAdmin(request);
   if (!auth.ok) return auth.response;
 
   const { data, error } = await auth.ctx.admin
     .from('prizes')
-    .select('id, name, probability_weight, image_url, value, active, created_at')
+    .select('id, name, probability_weight, image_url, value, active, prize_type, created_at')
     .order('probability_weight', { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -38,6 +45,10 @@ export async function POST(request: Request) {
   const value = Number(body.value ?? 0);
   const image_url = body.image_url ? String(body.image_url) : null;
   const active = body.active !== false;
+  const prize_type = parsePrizeType(body.prize_type);
+  if (!prize_type) {
+    return NextResponse.json({ error: 'Invalid prize type' }, { status: 400 });
+  }
 
   if (!name) return NextResponse.json({ error: 'Name is required' }, { status: 400 });
   if (!Number.isFinite(probability_weight) || probability_weight <= 0) {
@@ -46,7 +57,7 @@ export async function POST(request: Request) {
 
   const { data, error } = await auth.ctx.admin
     .from('prizes')
-    .insert({ name, probability_weight, value, image_url, active })
+    .insert({ name, probability_weight, value, image_url, active, prize_type })
     .select()
     .single();
 

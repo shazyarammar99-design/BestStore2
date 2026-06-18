@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, Menu, X, LogIn, LogOut } from 'lucide-react';
+import { ShoppingBag, Menu, X, LogIn } from 'lucide-react';
 import LogoBrand from '@/components/LogoBrand';
 import CurrencySelect from '@/components/CurrencySelect';
 import LanguageSelect from '@/components/LanguageSelect';
+import ProfileDropdown from '@/components/account/ProfileDropdown';
+import AccountMobileMenu from '@/components/account/AccountMobileMenu';
 import { NavMegaMenuDesktop, NavMegaMenuMobile } from '@/components/NavMegaMenu';
 import { CATEGORY_MENU, PRODUCT_MENU } from '@/data/navigation';
 import type { NavItem } from '@/data/navigation';
@@ -101,18 +103,7 @@ export default function Navigation() {
             <LanguageSelect />
 
             {!authLoading && user ? (
-              <Link
-                href="/account"
-                aria-label={t('nav.account')}
-                className="hidden h-10 w-10 overflow-hidden rounded-full border-2 border-best-border transition-colors hover:border-best-cyan sm:flex"
-              >
-                <Avatar className="h-full w-full">
-                  <AvatarImage src={profile?.avatar_url ?? undefined} alt={profile?.username ?? t('nav.account')} />
-                  <AvatarFallback className="bg-best-elevated font-heading text-xs font-bold text-best-cyan">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
+              <ProfileDropdown />
             ) : !authLoading ? (
               <Link
                 href="/login"
@@ -177,25 +168,16 @@ export default function Navigation() {
           </Link>
           {!authLoading && user ? (
             <>
-              <Link
-                href="/account"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 font-display text-2xl font-bold uppercase tracking-widest text-white hover:text-best-cyan"
-              >
+              <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 border border-best-cyan/40">
                   <AvatarImage src={profile?.avatar_url ?? undefined} alt={profile?.username ?? t('nav.account')} />
                   <AvatarFallback className="bg-best-elevated text-sm text-best-cyan">{initials}</AvatarFallback>
                 </Avatar>
-                {t('nav.account')}
-              </Link>
-              <button
-                type="button"
-                onClick={() => void handleSignOut()}
-                className="flex items-center gap-2 font-display text-2xl font-bold uppercase tracking-widest text-white hover:text-best-gold"
-              >
-                <LogOut className="h-6 w-6" />
-                {t('account.signOut')}
-              </button>
+              </div>
+              <AccountMobileMenu
+                onNavigate={() => setMobileOpen(false)}
+                onSignOut={() => void handleSignOut()}
+              />
             </>
           ) : (
             <Link

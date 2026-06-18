@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { SPIN_TEST_MODE } from '@/config/spin';
 import { SPIN_ODDS_META } from '@/config/spin-prizes';
 import { verifyMathChallenge } from '@/lib/captcha';
 import { rateLimit } from '@/lib/rate-limit';
@@ -62,19 +61,20 @@ function buildSpinStatusPayload(
     winPercent: number;
   }>,
   loggedIn: boolean,
-  spinSettings: { extraTurns: number; spinDurationMs: number; minPurchaseIqd: number }
+  spinSettings: { extraTurns: number; spinDurationMs: number; minPurchaseIqd: number; testMode: boolean }
 ) {
-  const canUseSpinToday = SPIN_TEST_MODE
+  const testMode = spinSettings.testMode === true;
+  const canUseSpinToday = testMode
     ? loggedIn
     : loggedIn && spinCredits > 0 && !spunToday;
 
   return {
     canSpinToday: canUseSpinToday,
-    nextSpinAt: SPIN_TEST_MODE ? null : spunToday && loggedIn ? utcMidnightTomorrow() : null,
-    spinCredits: SPIN_TEST_MODE ? 1 : spinCredits,
-    requiresPurchase: SPIN_TEST_MODE ? false : loggedIn && spinCredits === 0,
+    nextSpinAt: testMode ? null : spunToday && loggedIn ? utcMidnightTomorrow() : null,
+    spinCredits: testMode ? 1 : spinCredits,
+    requiresPurchase: testMode ? false : loggedIn && spinCredits === 0,
     minPurchaseIqd: spinSettings.minPurchaseIqd,
-    nextFreeSpinAt: SPIN_TEST_MODE ? null : loggedIn ? nextFreeSpinAt : null,
+    nextFreeSpinAt: testMode ? null : loggedIn ? nextFreeSpinAt : null,
     monthlySpinGranted,
     oddsMeta: {
       lastUpdated: SPIN_ODDS_META.lastUpdated,
@@ -83,6 +83,7 @@ function buildSpinStatusPayload(
     prizes,
     extraTurns: spinSettings.extraTurns,
     spinDurationMs: spinSettings.spinDurationMs,
+    testMode,
   };
 }
 
@@ -205,8 +206,9 @@ export async function POST(request: Request) {
 
   const spinCredits = monthly.spinCredits;
   const spinSettings = await loadSpinSettings(admin);
+  const testMode = spinSettings.testMode === true;
 
-  if (!SPIN_TEST_MODE && spinCredits <= 0) {
+  if (!testMode && spinCredits <= 0) {
     return NextResponse.json(
       {
         error: `Purchase at least ${spinSettings.minPurchaseIqd.toLocaleString()} IQD to unlock spins.`,
@@ -217,7 +219,7 @@ export async function POST(request: Request) {
 
   const today = utcToday();
 
-  if (!SPIN_TEST_MODE) {
+  if (!testMode) {
     const { data: existingSpin } = await admin
       .from('spins')
       .select('id')
@@ -235,7 +237,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No prizes available.' }, { status: 503 });
   }
 
-  if (!SPIN_TEST_MODE) {
+  if (!testMode) {
     const { error: spinError } = await admin.from('spins').insert({
       user_id: user.id,
       spin_date: today,

@@ -14,6 +14,9 @@ export type Order = {
   user_id: string;
   status: OrderStatus;
   amount: number;
+  subtotal_amount: number;
+  discount_amount: number;
+  reward_inventory_id: string | null;
   points_earned: number;
   payment_method_slug: string | null;
   delivery_json: Record<string, string>;
