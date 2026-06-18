@@ -13,6 +13,7 @@ import {
 import { CATEGORIES } from '@/data';
 import { getPaymentMethods, type PaymentMethod } from '@/lib/payment-methods';
 import { useTranslation } from '@/context/LocaleContext';
+import { useAuth } from '@/context/AuthContext';
 import { localizeCategory } from '@/i18n/catalog';
 import { transliterateBest } from '@/i18n/transliterate';
 
@@ -30,6 +31,7 @@ const PAYMENT_ICONS: Record<string, LucideIcon> = {
 export default function Footer() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const { t, locale } = useTranslation();
+  const { user } = useAuth();
 
   useEffect(() => {
     getPaymentMethods().then(setPaymentMethods);
@@ -38,7 +40,9 @@ export default function Footer() {
   return (
     <footer className="border-t border-best-border bg-best-elevated/40">
       <div className="mx-auto max-w-7xl px-6 py-14">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
+        <div
+          className={`grid grid-cols-1 gap-10 sm:grid-cols-2 ${user ? 'lg:grid-cols-4' : 'lg:grid-cols-5'}`}
+        >
           <div>
             <h3 className="font-heading text-sm font-bold uppercase tracking-widest text-white">
               {t('footer.categories')}
@@ -117,37 +121,39 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-heading text-sm font-bold uppercase tracking-widest text-white">
-              {t('auth.login')}
-            </h3>
-            <ul className="mt-4 space-y-2">
-              <li>
-                <Link
-                  href="/login"
-                  className="text-sm text-best-muted transition-colors hover:text-best-cyan"
-                >
-                  {t('nav.login')}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/signup"
-                  className="text-sm text-best-muted transition-colors hover:text-best-cyan"
-                >
-                  {t('auth.signup')}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/checkout"
-                  className="text-sm text-best-muted transition-colors hover:text-best-cyan"
-                >
-                  {t('cart.checkout')}
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {!user && (
+            <div>
+              <h3 className="font-heading text-sm font-bold uppercase tracking-widest text-white">
+                {t('auth.login')}
+              </h3>
+              <ul className="mt-4 space-y-2">
+                <li>
+                  <Link
+                    href="/login"
+                    className="text-sm text-best-muted transition-colors hover:text-best-cyan"
+                  >
+                    {t('nav.login')}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/signup"
+                    className="text-sm text-best-muted transition-colors hover:text-best-cyan"
+                  >
+                    {t('auth.signup')}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/checkout"
+                    className="text-sm text-best-muted transition-colors hover:text-best-cyan"
+                  >
+                    {t('cart.checkout')}
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
 
           <div>
             <h3 className="font-heading text-sm font-bold uppercase tracking-widest text-white">

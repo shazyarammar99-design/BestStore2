@@ -31,6 +31,7 @@ const SpinWheelCanvas = forwardRef<HTMLDivElement, SpinWheelCanvasProps>(functio
     onHubClick,
     spinDisabled = false,
     onSpinTransitionEnd,
+    spinDurationMs,
   },
   ref
 ) {
@@ -66,6 +67,7 @@ const SpinWheelCanvas = forwardRef<HTMLDivElement, SpinWheelCanvasProps>(functio
   const targetRotationRef = useRef(targetRotation);
   const segmentsLengthRef = useRef(segments.length);
   const onSpinEndRef = useRef(onSpinTransitionEnd);
+  const spinDurationMsRef = useRef(spinDurationMs);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -74,6 +76,10 @@ const SpinWheelCanvas = forwardRef<HTMLDivElement, SpinWheelCanvasProps>(functio
   useEffect(() => {
     targetRotationRef.current = targetRotation;
   }, [targetRotation]);
+
+  useEffect(() => {
+    spinDurationMsRef.current = spinDurationMs;
+  }, [spinDurationMs]);
 
   useEffect(() => {
     segmentsLengthRef.current = segments.length;
@@ -201,7 +207,7 @@ const SpinWheelCanvas = forwardRef<HTMLDivElement, SpinWheelCanvasProps>(functio
           lastTickSegmentRef.current = getPointerSegmentIndex(spinFromRef.current, segmentCount);
           lastTickSoundMsRef.current = 0;
         }
-        const duration = getSpinDuration(reduced);
+        const duration = getSpinDuration(reduced, spinDurationMsRef.current);
         const elapsed = now - spinStartRef.current;
         rotation = computeSpinRotation(
           spinFromRef.current,

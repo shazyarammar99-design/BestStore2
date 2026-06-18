@@ -1,6 +1,9 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useBrandingSettings } from '@/hooks/useSiteSettings';
 
 const ParticleCanvas = dynamic(() => import('@/components/ParticleCanvas'), { ssr: false });
 
@@ -15,6 +18,8 @@ export default function AuthLayout({
   children: ReactNode;
   footer: ReactNode;
 }) {
+  const { settings } = useBrandingSettings();
+
   return (
     <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-6 py-28">
       <ParticleCanvas />
@@ -23,10 +28,10 @@ export default function AuthLayout({
       <div className="relative z-10 w-full max-w-md">
         <div className="glass-panel rounded-2xl border border-best-border p-8 shadow-cyan-glow">
           <div className="flex flex-col items-center text-center">
-            <Link href="/" aria-label="BEST STORE — Home" className="mb-6 inline-block">
+            <Link href="/" aria-label={`${settings.siteName} — Home`} className="mb-6 inline-block">
               <img
-                src="/brand/logo.png"
-                alt="BEST"
+                src={settings.logoUrl}
+                alt={settings.siteName}
                 className="h-14 w-auto object-contain"
               />
             </Link>

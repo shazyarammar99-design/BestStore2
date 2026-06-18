@@ -14,6 +14,8 @@ import {
   ExternalLink,
   Menu,
   ShoppingBag,
+  CircleDot,
+  Image,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,6 +37,8 @@ const NAV = [
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/categories', label: 'Categories', icon: FolderOpen },
   { href: '/admin/homepage', label: 'Homepage', icon: Home },
+  { href: '/admin/branding', label: 'Branding', icon: Image },
+  { href: '/admin/spin', label: 'Spin Wheel', icon: CircleDot },
   { href: '/admin/admins', label: 'Admins', icon: Shield },
 ];
 

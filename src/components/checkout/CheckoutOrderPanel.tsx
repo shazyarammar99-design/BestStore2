@@ -8,6 +8,7 @@ import CheckoutTrustBadges from '@/components/checkout/CheckoutTrustBadges';
 import PaymentMethodPicker from '@/components/store/PaymentMethodPicker';
 import { CHECKOUT_SELLER } from '@/config/checkout';
 import { useAuth } from '@/context/AuthContext';
+import { useBrandingSettings } from '@/hooks/useSiteSettings';
 import { useFormatCurrency, useTranslation } from '@/context/LocaleContext';
 import { useStore, type CartItem } from '@/context/StoreContext';
 import { type CheckoutPricing } from '@/lib/checkout-pricing';
@@ -173,6 +174,7 @@ export default function CheckoutOrderPanel({
 }: CheckoutOrderPanelProps) {
   const { t } = useTranslation();
   const formatPrice = useFormatCurrency();
+  const { settings: branding } = useBrandingSettings();
 
   const showFee = pricing.serviceFee > 0;
   const showDiscount = pricing.discount > 0;
@@ -207,7 +209,7 @@ export default function CheckoutOrderPanel({
       <div className="mt-5 flex items-center gap-3 border-t border-best-border pt-5">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-best-cyan/30 bg-best-bg">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/logo.png" alt="" className="h-8 w-auto object-contain" />
+          <img src={branding.logoUrl} alt="" className="h-8 w-auto object-contain" />
         </div>
         <div>
           <p className="font-heading text-xs font-bold uppercase tracking-wider text-best-muted">

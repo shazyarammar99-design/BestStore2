@@ -5,6 +5,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured, setRememberMe } from '@/lib/supabase';
 
 type AuthResult = { error: string | null; code?: string };
+type SignUpResult = AuthResult & { session: Session | null };
 
 export type SignInResult =
   | { error: string | null; mfaRequired: false }
@@ -30,7 +31,7 @@ type AuthContextValue = {
   configured: boolean;
   signIn: (email: string, password: string, remember: boolean) => Promise<SignInResult>;
   verifyMfaLogin: (factorId: string, code: string) => Promise<AuthResult>;
-  signUp: (email: string, password: string) => Promise<AuthResult>;
+  signUp: (email: string, password: string) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<AuthResult>;
   listMfaFactors: () => Promise<{ totp: MfaFactor[]; error: string | null }>;
@@ -114,10 +115,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   };
 
-  const signUp = async (email: string, password: string): Promise<AuthResult> => {
-    if (!supabase) return { error: NOT_CONFIGURED };
-    const { error } = await supabase.auth.signUp({ email, password });
-    return { error: error?.message ?? null };
+  const signUp = async (email: string, password: string): Promise<SignUpResult> => {
+    if (!supabase) return { error: NOT_CONFIGURED, session: null };
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    return { error: error?.message ?? null, session: data.session };
   };
 
   const signOut = async () => {

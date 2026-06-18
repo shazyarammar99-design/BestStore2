@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   DndContext,
   DragOverlay,
+  MouseSensor,
   PointerSensor,
   TouchSensor,
   closestCorners,
@@ -59,6 +60,7 @@ export default function CatalogBoard() {
   const [activeProduct, setActiveProduct] = useState<CatalogProduct | null>(null);
   const [saving, setSaving] = useState(false);
   const dragStartCatalog = useRef<CatalogCategory[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
   const [catOpen, setCatOpen] = useState(false);
@@ -75,9 +77,13 @@ export default function CatalogBoard() {
   });
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } })
   );
+
+  const searchActive = search.trim().length > 0;
+  const dragEnabled = !isMobile && !searchActive;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -141,6 +147,9 @@ export default function CatalogBoard() {
     dragStartCatalog.current = cloneCatalog(catalog);
     const product = event.active.data.current?.product as CatalogProduct | undefined;
     setActiveProduct(product ?? null);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.overflowX = 'hidden';
+    }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -191,6 +200,9 @@ export default function CatalogBoard() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveProduct(null);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.overflowX = '';
+    }
     const { active, over } = event;
 
     if (!over) {
@@ -328,7 +340,9 @@ export default function CatalogBoard() {
           <p className="mt-1 text-sm text-best-muted">
             {isMobile
               ? 'Use the ⋮ menu on each product to move or reorder. Changes save automatically.'
-              : 'Drag products between categories. Changes save automatically.'}
+              : searchActive
+                ? 'Clear the search filter to drag products between categories.'
+                : 'Drag products between categories. Changes save automatically.'}
             {saving ? ' Saving…' : ''}
           </p>
         </div>
@@ -352,6 +366,12 @@ export default function CatalogBoard() {
         />
       </div>
 
+      {searchActive && !isMobile && (
+        <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-300">
+          Search is active — clear it to use drag and drop.
+        </p>
+      )}
+
       {isMobile ? (
         <div className="-mx-2 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 px-2 md:mx-0 md:px-0">
           {filteredCatalog.map((category) => (
@@ -366,7 +386,7 @@ export default function CatalogBoard() {
             />
           ))}
         </div>
-      ) : (
+      ) : dragEnabled ? (
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -374,8 +394,11 @@ export default function CatalogBoard() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="-mx-2 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 px-2 md:mx-0 md:px-0">
-            {filteredCatalog.map((category) => (
+          <div
+            ref={scrollContainerRef}
+            className="-mx-2 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 px-2 md:mx-0 md:px-0"
+          >
+            {catalog.map((category) => (
               <CategoryColumn key={category.id} category={category} />
             ))}
           </div>
@@ -387,6 +410,12 @@ export default function CatalogBoard() {
             ) : null}
           </DragOverlay>
         </DndContext>
+      ) : (
+        <div className="-mx-2 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 px-2 md:mx-0 md:px-0">
+          {filteredCatalog.map((category) => (
+            <CategoryColumn key={category.id} category={category} />
+          ))}
+        </div>
       )}
 
       <Dialog open={catOpen} onOpenChange={setCatOpen}>
