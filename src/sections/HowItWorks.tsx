@@ -1,36 +1,27 @@
+'use client';
+
 import { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SectionHeader from '@/components/SectionHeader';
-import { MousePointerClick, Download, Crown, Play, type LucideIcon } from 'lucide-react';
+import { MousePointerClick, CreditCard, Zap, Play, type LucideIcon } from 'lucide-react';
+import { useTranslation } from '@/context/LocaleContext';
+import { getSteps } from '@/i18n/content';
+import { useCmsBlocks } from '@/hooks/useCmsBlocks';
+import type { StepPayload } from '@/types/site-content';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const STEPS: { number: string; title: string; description: string; icon: LucideIcon }[] = [
-  {
-    number: '01',
-    title: 'Choose Software',
-    description: 'Pick your game and tool — aimbots, ESP, spoofers, boosters, and more.',
-    icon: MousePointerClick,
-  },
-  {
-    number: '02',
-    title: 'Instant Download',
-    description: 'Pay in IQD, crypto, or card. Your loader and license arrive in seconds.',
-    icon: Download,
-  },
-  {
-    number: '03',
-    title: 'Dominate',
-    description: 'Launch your game. Tools activate automatically — undetected and updated.',
-    icon: Crown,
-  },
-];
+const STEP_ICONS: LucideIcon[] = [MousePointerClick, CreditCard, Zap];
 
 export default function HowItWorks() {
   const containerRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
+  const { t, locale } = useTranslation();
+  const { blocks } = useCmsBlocks('step', locale);
+  const cmsSteps = blocks.map((b) => b.payload as StepPayload);
+  const steps = cmsSteps.length ? cmsSteps : getSteps(locale);
 
   useGSAP(
     () => {
@@ -68,7 +59,7 @@ export default function HowItWorks() {
   return (
     <section className="py-24 md:py-32">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeader eyebrow="HOW IT WORKS" headline="Three Steps to Dominate" />
+        <SectionHeader eyebrow={t('sections.howItWorks').toUpperCase()} headline={t('sections.howItWorks')} />
 
         <div ref={containerRef} className="relative mt-16">
           <div
@@ -77,8 +68,8 @@ export default function HowItWorks() {
           />
 
           <div className="grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-8">
-            {STEPS.map((step) => {
-              const Icon = step.icon;
+            {steps.map((step, i) => {
+              const Icon = STEP_ICONS[i] ?? MousePointerClick;
               return (
                 <div key={step.number} className="step-item relative text-center md:text-left">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-best-cyan/40 bg-best-cyan/5 shadow-cyan-glow md:mx-0">

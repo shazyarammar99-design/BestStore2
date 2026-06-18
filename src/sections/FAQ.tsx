@@ -1,10 +1,15 @@
+'use client';
+
 import { useRef, useState, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { FAQS } from '@/data';
-import SectionHeader from '@/components/SectionHeader';
+import { getFaqs } from '@/i18n/content';
+import { useCmsBlocks } from '@/hooks/useCmsBlocks';
+import type { FaqPayload } from '@/types/site-content';
 import { ChevronDown } from 'lucide-react';
+import SectionHeader from '@/components/SectionHeader';
+import { useTranslation } from '@/context/LocaleContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -67,6 +72,12 @@ function AccordionItem({
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { t, locale } = useTranslation();
+  const { blocks } = useCmsBlocks('faq', locale);
+  const cmsFaqs = blocks.map((b) => b.payload as FaqPayload);
+  const faqs = cmsFaqs.length
+    ? cmsFaqs
+    : getFaqs(locale);
 
   useGSAP(() => {
     if (!containerRef.current) return;
@@ -91,10 +102,10 @@ export default function FAQ() {
   return (
     <section id="faq" className="py-24 md:py-32">
       <div className="mx-auto max-w-3xl px-6">
-        <SectionHeader eyebrow="FAQ" headline="Common Questions" />
+        <SectionHeader eyebrow={t('sections.faq')} headline={t('sections.faq')} />
 
         <div ref={containerRef} className="mt-16 space-y-3">
-          {FAQS.map((faq, i) => (
+          {faqs.map((faq, i) => (
             <AccordionItem
               key={i}
               question={faq.question}

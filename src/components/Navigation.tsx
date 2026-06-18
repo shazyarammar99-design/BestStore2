@@ -1,135 +1,211 @@
-import { useState, useEffect, useRef } from 'react';
-import gsap from 'gsap';
+'use client';
 
-const NAV_LINKS = [
-  { label: 'Software', href: '#software' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'Proof', href: '#proof' },
-  { label: 'Support', href: '#faq' },
-];
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ShoppingBag, Menu, X, LogIn, LogOut } from 'lucide-react';
+import LogoBrand from '@/components/LogoBrand';
+import CurrencySelect from '@/components/CurrencySelect';
+import LanguageSelect from '@/components/LanguageSelect';
+import { NavMegaMenuDesktop, NavMegaMenuMobile } from '@/components/NavMegaMenu';
+import { CATEGORY_MENU, PRODUCT_MENU } from '@/data/navigation';
+import type { NavItem } from '@/data/navigation';
+import { useStore } from '@/context/StoreContext';
+import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/context/LocaleContext';
+import { localizeNavItem } from '@/i18n/catalog';
+import { useProfile } from '@/context/ProfileContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Navigation() {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const linksRef = useRef<HTMLDivElement>(null);
+  const { itemCount } = useStore();
+  const { t, locale } = useTranslation();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { profile } = useProfile();
+
+  const categoryMenu = CATEGORY_MENU.map((item) => localizeNavItem(item, locale));
+  const productMenu = PRODUCT_MENU.map((item) => localizeNavItem(item, locale));
+
+  const initials = (profile?.username ?? user?.email ?? '?').slice(0, 2).toUpperCase();
+
+  const handleSignOut = async () => {
+    setMobileOpen(false);
+    await signOut();
+    router.push('/');
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', onScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
-    if (mobileOpen && overlayRef.current && linksRef.current) {
-      gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 });
-      const links = linksRef.current.querySelectorAll('.mobile-link');
-      gsap.fromTo(
-        links,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, stagger: 0.08, duration: 0.4, delay: 0.15, ease: 'power3.out' }
-      );
-    }
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [mobileOpen]);
 
-  const scrollTo = (href: string) => {
+  const handleNavSelect = (item: NavItem) => {
     setMobileOpen(false);
-    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    if (item.productId) {
+      router.push(`/product/${item.productId}`);
+    } else if (item.categoryId) {
+      router.push(`/category/${item.categoryId}`);
+    }
   };
 
   return (
     <>
-      <nav
-        className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
-          scrolled ? 'glass-panel border-b border-best-border shadow-cyan-glow' : 'bg-transparent'
+      <header
+        className={`fixed left-0 right-0 top-0 z-50 border-b transition-all duration-300 ${
+          scrolled
+            ? 'border-best-border bg-best-bg/95 backdrop-blur-md'
+            : 'border-transparent bg-best-bg/80 backdrop-blur-sm'
         }`}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          {/* Brand */}
-          <a href="#" className="flex items-center gap-1.5">
-            <span className="font-display text-lg font-bold uppercase tracking-[0.15em] text-white">
-              BEST
-            </span>
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-best-cyan shadow-cyan-glow" />
-            <span className="font-display text-lg font-medium uppercase tracking-[0.15em] text-gradient-neon">
-              STORE
-            </span>
-          </a>
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-6">
+          <LogoBrand />
 
-          {/* Center links - desktop */}
-          <div className="hidden items-center gap-8 md:flex">
-            {NAV_LINKS.map((link) => (
-              <button
-                key={link.label}
-                onClick={() => scrollTo(link.href)}
-                className="font-heading text-sm font-semibold uppercase tracking-widest text-best-muted transition-all duration-200 hover:text-best-cyan hover:text-glow-cyan"
+          <nav className="hidden items-center gap-8 lg:flex">
+            <NavMegaMenuDesktop
+              label={t('nav.categories')}
+              items={categoryMenu}
+              onSelect={handleNavSelect}
+            />
+            <NavMegaMenuDesktop
+              label={t('nav.products')}
+              items={productMenu}
+              onSelect={handleNavSelect}
+            />
+            <Link
+              href="/leaderboard"
+              className="font-heading text-sm font-semibold uppercase tracking-widest text-best-muted transition-colors hover:text-best-cyan"
+            >
+              {t('nav.leaderboard')}
+            </Link>
+            <Link
+              href="/spin"
+              className="font-heading text-sm font-semibold uppercase tracking-widest text-best-muted transition-colors hover:text-best-gold"
+            >
+              {t('nav.spinWin')}
+            </Link>
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <CurrencySelect />
+            <LanguageSelect />
+
+            {!authLoading && user ? (
+              <Link
+                href="/account"
+                aria-label={t('nav.account')}
+                className="hidden h-10 w-10 overflow-hidden rounded-full border-2 border-best-border transition-colors hover:border-best-cyan sm:flex"
               >
-                {link.label}
-              </button>
-            ))}
-          </div>
+                <Avatar className="h-full w-full">
+                  <AvatarImage src={profile?.avatar_url ?? undefined} alt={profile?.username ?? t('nav.account')} />
+                  <AvatarFallback className="bg-best-elevated font-heading text-xs font-bold text-best-cyan">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+            ) : !authLoading ? (
+              <Link
+                href="/login"
+                className="hidden items-center gap-1.5 rounded-lg border border-best-border px-3 py-2 font-heading text-sm font-semibold text-best-muted transition-colors hover:border-best-cyan hover:text-best-cyan sm:flex"
+              >
+                <LogIn className="h-4 w-4" />
+                {t('nav.login')}
+              </Link>
+            ) : null}
 
-          {/* CTA */}
-          <div className="flex items-center gap-4">
             <button
-              onClick={() => scrollTo('#pricing')}
-              className="hidden font-heading text-sm font-semibold uppercase tracking-widest text-best-muted transition-colors hover:text-white md:inline-block"
+              type="button"
+              onClick={() => router.push('/checkout')}
+              aria-label={t('nav.openCart')}
+              className="relative flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-best-border text-best-muted transition-all duration-200 hover:border-best-cyan hover:text-best-cyan"
             >
-              Login
-            </button>
-            <button
-              onClick={() => scrollTo('#pricing')}
-              className="hidden rounded-lg bg-best-gold px-5 py-2.5 font-heading text-sm font-bold uppercase tracking-widest text-best-bg transition-all duration-200 hover:scale-[1.03] hover:shadow-gold-glow md:inline-block"
-            >
-              Start Free Trial
+              <ShoppingBag className="h-5 w-5" />
+              {itemCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-best-gold px-1 font-heading text-[10px] font-bold text-best-bg">
+                  {itemCount > 99 ? '99+' : itemCount}
+                </span>
+              )}
             </button>
 
-            {/* Hamburger */}
             <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="flex flex-col gap-1.5 md:hidden"
-              aria-label="Toggle menu"
+              type="button"
+              onClick={() => setMobileOpen((o) => !o)}
+              aria-label={t('nav.toggleMenu')}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-best-border text-best-muted transition-colors hover:text-best-cyan lg:hidden"
             >
-              <span
-                className={`h-0.5 w-6 bg-best-cyan transition-transform duration-300 ${
-                  mobileOpen ? 'translate-y-2 rotate-45' : ''
-                }`}
-              />
-              <span
-                className={`h-0.5 w-6 bg-best-cyan transition-opacity duration-300 ${
-                  mobileOpen ? 'opacity-0' : ''
-                }`}
-              />
-              <span
-                className={`h-0.5 w-6 bg-best-cyan transition-transform duration-300 ${
-                  mobileOpen ? '-translate-y-2 -rotate-45' : ''
-                }`}
-              />
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* Mobile overlay */}
       {mobileOpen && (
-        <div ref={overlayRef} className="fixed inset-0 z-40 glass-panel md:hidden">
-          <div ref={linksRef} className="flex h-full flex-col items-center justify-center gap-8">
-            {NAV_LINKS.map((link) => (
-              <button
-                key={link.label}
-                onClick={() => scrollTo(link.href)}
-                className="mobile-link font-display text-2xl font-bold uppercase tracking-widest text-white transition-colors hover:text-best-cyan"
-              >
-                {link.label}
-              </button>
-            ))}
-            <button
-              onClick={() => scrollTo('#pricing')}
-              className="mobile-link mt-4 rounded-lg bg-best-gold px-8 py-3.5 font-heading text-base font-bold uppercase tracking-widest text-best-bg"
-            >
-              Start Free Trial
-            </button>
+        <div className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-best-bg/98 px-6 pt-20 backdrop-blur-md lg:hidden">
+          <div className="flex items-center gap-3">
+            <CurrencySelect className="flex h-10 min-w-[5.5rem] rounded-lg border-best-border bg-transparent font-heading text-xs font-semibold text-best-muted shadow-none hover:border-best-cyan hover:text-best-cyan" />
+            <LanguageSelect className="flex h-10 min-w-[6.5rem] rounded-lg border-best-border bg-transparent font-heading text-xs font-semibold text-best-muted shadow-none hover:border-best-cyan hover:text-best-cyan" />
           </div>
+          <NavMegaMenuMobile
+            label={t('nav.categories')}
+            items={categoryMenu}
+            onSelect={handleNavSelect}
+          />
+          <NavMegaMenuMobile label={t('nav.products')} items={productMenu} onSelect={handleNavSelect} />
+          <Link
+            href="/leaderboard"
+            onClick={() => setMobileOpen(false)}
+            className="font-display text-2xl font-bold uppercase tracking-widest text-white hover:text-best-cyan"
+          >
+            {t('nav.leaderboard')}
+          </Link>
+          <Link
+            href="/spin"
+            onClick={() => setMobileOpen(false)}
+            className="font-display text-2xl font-bold uppercase tracking-widest text-white hover:text-best-gold"
+          >
+            {t('nav.spinWin')}
+          </Link>
+          {!authLoading && user ? (
+            <>
+              <Link
+                href="/account"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 font-display text-2xl font-bold uppercase tracking-widest text-white hover:text-best-cyan"
+              >
+                <Avatar className="h-10 w-10 border border-best-cyan/40">
+                  <AvatarImage src={profile?.avatar_url ?? undefined} alt={profile?.username ?? t('nav.account')} />
+                  <AvatarFallback className="bg-best-elevated text-sm text-best-cyan">{initials}</AvatarFallback>
+                </Avatar>
+                {t('nav.account')}
+              </Link>
+              <button
+                type="button"
+                onClick={() => void handleSignOut()}
+                className="flex items-center gap-2 font-display text-2xl font-bold uppercase tracking-widest text-white hover:text-best-gold"
+              >
+                <LogOut className="h-6 w-6" />
+                {t('account.signOut')}
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="font-display text-2xl font-bold uppercase tracking-widest text-white hover:text-best-cyan"
+            >
+              {t('nav.login')}
+            </Link>
+          )}
         </div>
       )}
     </>

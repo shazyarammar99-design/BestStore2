@@ -10,7 +10,17 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.next
+
+# Env files — never commit secrets
+.env
+.env.*
+!.env.example
 *.local
+
+# Editor / tooling
+.cursor/
+tsconfig.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
