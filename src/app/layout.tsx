@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import AppShell from '@/components/AppShell';
 import { getBrandingSettings } from '@/lib/site-settings';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export async function generateMetadata(): Promise<Metadata> {
   const branding = await getBrandingSettings();
@@ -34,6 +35,7 @@ export default function RootLayout({
       </head>
       <body>
         <AppShell>{children}</AppShell>
+        <SpeedInsights />
       </body>
     </html>
   );
