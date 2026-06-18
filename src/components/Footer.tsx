@@ -11,7 +11,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { CATEGORIES } from '@/data';
-import { getPaymentMethods, type PaymentMethod } from '@/lib/payment-methods';
+import { type PaymentMethod } from '@/lib/payment-methods';
 import { useTranslation } from '@/context/LocaleContext';
 import { useAuth } from '@/context/AuthContext';
 import { localizeCategory } from '@/i18n/catalog';
@@ -34,7 +34,10 @@ export default function Footer() {
   const { user } = useAuth();
 
   useEffect(() => {
-    getPaymentMethods().then(setPaymentMethods);
+    fetch('/api/payment-methods')
+      .then((r) => r.json())
+      .then((data) => setPaymentMethods(data.methods ?? []))
+      .catch(() => {});
   }, []);
 
   return (
