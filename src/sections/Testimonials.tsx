@@ -1,15 +1,24 @@
+'use client';
+
 import { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TESTIMONIALS } from '@/data';
+import { useCmsBlocks } from '@/hooks/useCmsBlocks';
+import type { TestimonialPayload } from '@/types/site-content';
 import SectionHeader from '@/components/SectionHeader';
 import { Play, BadgeCheck } from 'lucide-react';
+import { useTranslation } from '@/context/LocaleContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Testimonials() {
   const gridRef = useRef<HTMLDivElement>(null);
+  const { locale } = useTranslation();
+  const { blocks } = useCmsBlocks('testimonial', locale);
+  const cmsItems = blocks.map((b) => b.payload as TestimonialPayload);
+  const items = cmsItems.length ? cmsItems : TESTIMONIALS;
 
   useGSAP(
     () => {
@@ -37,7 +46,7 @@ export default function Testimonials() {
         <SectionHeader eyebrow="TESTIMONIALS" headline="Trusted by Gamers" />
 
         <div ref={gridRef} className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
-          {TESTIMONIALS.map((t) => (
+          {items.map((t) => (
             <div
               key={t.name}
               className="testimonial-card rounded-xl border border-best-border bg-best-elevated p-8 transition-all duration-300 hover:border-best-cyan/40"

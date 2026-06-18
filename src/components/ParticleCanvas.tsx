@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
@@ -9,7 +11,7 @@ export default function ParticleCanvas() {
     if (!container) return;
 
     const isMobile = window.innerWidth < 768;
-    const count = isMobile ? 600 : 1600;
+    const count = isMobile ? 350 : 800;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -20,9 +22,9 @@ export default function ParticleCanvas() {
     );
     camera.position.z = 10;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'high-performance' });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
     const positions = new Float32Array(count * 3);
@@ -68,28 +70,51 @@ export default function ParticleCanvas() {
       mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
       mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
     };
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
 
     const onResize = () => {
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     };
-    window.addEventListener('resize', onResize);
+    window.addEventListener('resize', onResize, { passive: true });
 
     let frameId = 0;
+    let running = true;
+    let visible = true;
+    let tick = 0;
     const clock = new THREE.Clock();
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(container);
+
+    const onVisibility = () => {
+      running = document.visibilityState === 'visible';
+      if (running && visible) animate();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     const animate = () => {
       frameId = requestAnimationFrame(animate);
-      const elapsed = clock.getElapsedTime();
-      const pos = geometry.attributes.position.array as Float32Array;
+      if (!running || !visible) return;
 
-      for (let i = 0; i < count; i++) {
-        pos[i * 3 + 1] += Math.sin(elapsed * speeds[i] + i) * 0.0015;
-        pos[i * 3] += Math.cos(elapsed * speeds[i] * 0.5 + i) * 0.001;
+      tick += 1;
+      const elapsed = clock.getElapsedTime();
+
+      // Update particle positions every other frame — visually identical, half the CPU.
+      if (tick % 2 === 0) {
+        const pos = geometry.attributes.position.array as Float32Array;
+        for (let i = 0; i < count; i++) {
+          pos[i * 3 + 1] += Math.sin(elapsed * speeds[i] + i) * 0.003;
+          pos[i * 3] += Math.cos(elapsed * speeds[i] * 0.5 + i) * 0.002;
+        }
+        geometry.attributes.position.needsUpdate = true;
       }
-      geometry.attributes.position.needsUpdate = true;
 
       points.rotation.y += (mouse.x * 0.12 - points.rotation.y) * 0.04;
       points.rotation.x += (mouse.y * 0.08 - points.rotation.x) * 0.04;
@@ -100,6 +125,8 @@ export default function ParticleCanvas() {
 
     return () => {
       cancelAnimationFrame(frameId);
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('resize', onResize);
       geometry.dispose();
@@ -109,5 +136,5 @@ export default function ParticleCanvas() {
     };
   }, []);
 
-  return <div ref={containerRef} className="absolute inset-0" aria-hidden="true" />;
+  return <div ref={containerRef} className="absolute inset-0 z-0" aria-hidden="true" />;
 }

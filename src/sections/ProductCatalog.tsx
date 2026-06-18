@@ -1,8 +1,12 @@
+'use client';
+
 import { useRef, useState, useMemo, Suspense, useEffect, useCallback } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { PRODUCTS, CATEGORY_COLORS, formatPrice } from '@/data';
+import { PRODUCTS, CATEGORY_COLORS } from '@/data';
 import SectionHeader from '@/components/SectionHeader';
+import { useFormatCurrency } from '@/context/LocaleContext';
+import { useTranslation } from '@/context/LocaleContext';
 
 function createCategoryTexture(categoryId: string, label: string, price: string): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
@@ -230,6 +234,8 @@ export default function ProductCatalog() {
   const canvasWrapRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const groupRef = useRef<THREE.Group & { userData: Record<string, () => void> }>(null);
+  const formatPrice = useFormatCurrency();
+  const { t } = useTranslation();
 
   const textures = useMemo(
     () =>
@@ -240,7 +246,7 @@ export default function ProductCatalog() {
           formatPrice(product.price)
         )
       ),
-    []
+    [formatPrice]
   );
 
   useEffect(() => {

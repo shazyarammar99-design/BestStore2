@@ -1,16 +1,19 @@
+'use client';
+
 import { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { SOFTWARE_CATEGORIES } from '@/data';
+import { CATEGORIES, CATEGORY_COLORS } from '@/data';
 import SectionHeader from '@/components/SectionHeader';
+import { useFormatCurrency, useTranslation } from '@/context/LocaleContext';
+import { localizeCategory } from '@/i18n/catalog';
 import {
-  Crosshair,
-  Eye,
-  Layers,
-  Unlock,
-  Fingerprint,
-  Gauge,
+  Coins,
+  ShieldOff,
+  Gamepad2,
+  Tags,
+  Wrench,
   ArrowRight,
   type LucideIcon,
 } from 'lucide-react';
@@ -18,16 +21,21 @@ import {
 gsap.registerPlugin(ScrollTrigger);
 
 const ICON_MAP: Record<string, LucideIcon> = {
-  Crosshair,
-  Eye,
-  Layers,
-  Unlock,
-  Fingerprint,
-  Gauge,
+  Coins,
+  ShieldOff,
+  Gamepad2,
+  Tags,
+  Wrench,
+  'bypass-pubg': ShieldOff,
+  'steam-games': Gamepad2,
+  'discounted-games': Tags,
+  'other-games': Wrench,
 };
 
 export default function CategoriesGrid() {
   const gridRef = useRef<HTMLDivElement>(null);
+  const { t, locale } = useTranslation();
+  const formatPrice = useFormatCurrency();
 
   useGSAP(
     () => {
@@ -57,14 +65,16 @@ export default function CategoriesGrid() {
     <section id="categories" className="bg-best-elevated/40 py-24 md:py-32">
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeader
-          eyebrow="SOFTWARE CATEGORIES"
-          headline="Find Your Edge"
-          subtitle="Six categories of premium tools. One subscription away."
+          eyebrow={t('sections.categories').toUpperCase()}
+          headline="Hot Drops"
+          subtitle={t('sections.browseAll')}
         />
 
         <div ref={gridRef} className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {SOFTWARE_CATEGORIES.map((category) => {
-            const Icon = ICON_MAP[category.icon] || Crosshair;
+          {CATEGORIES.map((raw) => {
+            const category = localizeCategory({ ...raw, slug: raw.id }, locale);
+            const Icon = ICON_MAP[category.id] || Coins;
+            const accent = CATEGORY_COLORS[category.id] || '#00F0FF';
             return (
               <button
                 key={category.id}
@@ -74,14 +84,19 @@ export default function CategoriesGrid() {
                 {/* Accent glow blob */}
                 <div
                   className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full opacity-10 blur-2xl transition-opacity duration-300 group-hover:opacity-25"
-                  style={{ background: category.accent }}
+                  style={{ background: accent }}
                 />
 
-                <div
-                  className="flex h-14 w-14 items-center justify-center rounded-xl"
-                  style={{ background: `${category.accent}1A`, color: category.accent }}
-                >
-                  <Icon className="h-7 w-7" />
+                <div className="flex items-start justify-between">
+                  <div
+                    className="flex h-14 w-14 items-center justify-center rounded-xl"
+                    style={{ background: `${accent}1A`, color: accent }}
+                  >
+                    <Icon className="h-7 w-7" />
+                  </div>
+                  <span className="flex items-center gap-1.5 rounded-full border border-best-purple/30 bg-best-purple/10 px-2.5 py-1 font-heading text-[11px] font-semibold uppercase tracking-wider text-best-purple">
+                    {category.tag}
+                  </span>
                 </div>
 
                 <h3 className="font-heading mt-6 text-2xl font-bold text-white">{category.name}</h3>
@@ -89,7 +104,7 @@ export default function CategoriesGrid() {
 
                 <div className="mt-6 flex items-center justify-between">
                   <span className="font-heading text-xs font-semibold uppercase tracking-widest text-best-caption">
-                    {category.count} products
+                    {t('product.from')} {formatPrice(category.fromPrice)}
                   </span>
                   <ArrowRight className="h-4 w-4 text-best-caption transition-all duration-300 group-hover:translate-x-1 group-hover:text-best-cyan" />
                 </div>

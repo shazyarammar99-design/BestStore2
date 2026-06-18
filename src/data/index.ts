@@ -10,6 +10,7 @@ export type ProductVariant = {
   id: string;
   duration: string;
   price: number;
+  planType?: string;
 };
 
 export type Product = {
@@ -22,7 +23,46 @@ export type Product = {
   variants?: ProductVariant[];
 };
 
+function subscriptionVariants(slug: string, offset: number): ProductVariant[] {
+  return [
+    { id: `${slug}-sub-3m`, planType: 'Subscription', duration: '3 Months', price: 12000 + offset },
+    { id: `${slug}-sub-6m`, planType: 'Subscription', duration: '6 Months', price: 22000 + offset },
+    { id: `${slug}-sub-1y`, planType: 'Subscription', duration: '1 Year', price: 38000 + offset },
+    { id: `${slug}-acc-3m`, planType: 'Account', duration: '3 Months', price: 15000 + offset },
+    { id: `${slug}-acc-6m`, planType: 'Account', duration: '6 Months', price: 28000 + offset },
+    { id: `${slug}-acc-1y`, planType: 'Account', duration: '1 Year', price: 45000 + offset },
+  ];
+}
+
+const SUBSCRIPTION_PRODUCT_DEFS = [
+  { id: 'discord', name: 'Discord', description: 'Discord Nitro and premium features', offset: 4000 },
+  { id: 'netflix', name: 'Netflix', description: 'Netflix streaming subscription', offset: 3000 },
+  { id: 'claude', name: 'Claude', description: 'Anthropic Claude — premium access', offset: 2000 },
+  { id: 'youtube', name: 'YouTube', description: 'YouTube Premium subscription', offset: 5000 },
+  { id: 'gemini', name: 'Gemini', description: 'Google Gemini AI — premium access', offset: 0 },
+  { id: 'chatgpt', name: 'ChatGPT', description: 'OpenAI ChatGPT — premium access', offset: 1000 },
+  { id: 'deepseek', name: 'DeepSeek', description: 'DeepSeek AI — premium access', offset: 6000 },
+  { id: 'spotify', name: 'Spotify', description: 'Spotify Premium subscription', offset: 7000 },
+] as const;
+
+export const SUBSCRIPTION_PRODUCTS: Product[] = SUBSCRIPTION_PRODUCT_DEFS.map((p) => ({
+  id: p.id,
+  name: p.name,
+  description: p.description,
+  duration: '3 Months',
+  price: 12000 + p.offset,
+  categoryId: 'in-game-currency',
+  variants: subscriptionVariants(p.id, p.offset),
+}));
+
 export const CATEGORIES: Category[] = [
+  {
+    id: 'in-game-currency',
+    name: 'Premium Subscriptions',
+    tag: 'Subscriptions',
+    fromPrice: 12000,
+    description: 'Premium AI, streaming, and social subscriptions — delivered instantly.',
+  },
   {
     id: 'bypass-pubg',
     name: 'Bypass PUBG',
@@ -51,40 +91,30 @@ export const CATEGORIES: Category[] = [
     fromPrice: 2000,
     description: 'Various gaming products and utilities',
   },
+  {
+    id: 'digital-services',
+    name: 'Digital Services',
+    tag: 'New',
+    fromPrice: 3000,
+    description: 'Streaming, apps, game keys, and premium digital subscriptions.',
+  },
 ];
 
 export const PRODUCTS: Product[] = [
+  ...SUBSCRIPTION_PRODUCTS,
   {
-    id: 'pubg-1day',
+    id: 'pubg-bypass',
     name: 'PUBG Bypass',
     description: 'Premium PUBG bypass with anti-detection',
     duration: '1 Day',
     price: 1500,
     categoryId: 'bypass-pubg',
-  },
-  {
-    id: 'pubg-1week',
-    name: 'PUBG Bypass',
-    description: 'Premium PUBG bypass with anti-detection',
-    duration: '1 Week',
-    price: 12000,
-    categoryId: 'bypass-pubg',
-  },
-  {
-    id: 'pubg-1month',
-    name: 'PUBG Bypass',
-    description: 'Premium PUBG bypass with anti-detection',
-    duration: '1 Month',
-    price: 22000,
-    categoryId: 'bypass-pubg',
-  },
-  {
-    id: 'pubg-lifetime',
-    name: 'PUBG Bypass',
-    description: 'Premium PUBG bypass with anti-detection',
-    duration: 'Lifetime',
-    price: 150000,
-    categoryId: 'bypass-pubg',
+    variants: [
+      { id: '1day', duration: '1 Day', price: 1500 },
+      { id: '1week', duration: '1 Week', price: 12000 },
+      { id: '1month', duration: '1 Month', price: 22000 },
+      { id: 'lifetime', duration: 'Lifetime', price: 150000 },
+    ],
   },
   {
     id: 'steam-account-1',
@@ -174,13 +204,21 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
+import { formatPrice as formatPriceIqd } from '@/lib/format-currency';
+
 export function formatPrice(price: number): string {
-  return `${price.toLocaleString()} IQD`;
+  return formatPriceIqd(price, 'IQD');
 }
 
 export function getCategoryById(id: string): Category | undefined {
   return CATEGORIES.find((c) => c.id === id);
 }
+
+export function getProductById(id: string): Product | undefined {
+  return PRODUCTS.find((p) => p.id === id);
+}
+
+export const FEATURED_PRODUCTS = PRODUCTS.slice(0, 6).map((p) => p.id);
 
 export function getProductDisplayPrice(product: Product): string {
   if (product.variants?.length) {
@@ -392,10 +430,12 @@ export const FAQS = [
 export const LOGOS = ['PUBG', 'STEAM', 'FORTNITE', 'COD', 'APEX', 'VALORANT'];
 
 export const CATEGORY_COLORS: Record<string, string> = {
+  'in-game-currency': '#FFD700',
   'bypass-pubg': '#7c3aed',
   'steam-games': '#0084FF',
   'discounted-games': '#C87941',
   'other-games': '#10b981',
+  'digital-services': '#00F0FF',
 };
 
 /* ---------- Cyberpunk redesign data ---------- */
@@ -555,31 +595,10 @@ export const SOFTWARE_CATEGORIES: SoftwareCategory[] = [
   },
 ];
 
-export const STATS = [
-  { label: 'Active Users', value: 12400, suffix: '+' },
-  { label: 'Games Supported', value: 38, suffix: '' },
-  { label: 'Days Undetected', value: 412, suffix: '' },
-  { label: 'Customer Reviews', value: 500, suffix: '+' },
-];
-
-export const TRUST_BADGES = [
-  { icon: 'Lock', label: 'SSL Secured' },
-  { icon: 'Fingerprint', label: 'HWID Lock' },
-  { icon: 'Headphones', label: '24/7 Support' },
-  { icon: 'ShieldCheck', label: 'Anti-Detect' },
-];
-
-export const LIVE_PROOF_EVENTS = [
-  { name: 'Ahmed', action: 'just unlocked', product: 'Warzone Pro pack' },
-  { name: 'Sara', action: 'subscribed to', product: 'Apex Aimbot' },
-  { name: 'Omar', action: 'just purchased', product: 'PUBG Bypass — Lifetime' },
-  { name: 'Layla', action: 'just unlocked', product: 'Valorant Triggerbot' },
-  { name: 'Hassan', action: 'subscribed to', product: 'Monthly Legend plan' },
-  { name: 'Zainab', action: 'just purchased', product: 'Steam VIP Account' },
-  { name: 'Ali', action: 'just unlocked', product: 'Rust Cheat' },
-  { name: 'Noor', action: 'subscribed to', product: 'Weekly Warrior plan' },
-  { name: 'Mustafa', action: 'just purchased', product: 'AAA Game Bundle' },
-  { name: 'Dina', action: 'just unlocked', product: 'Best Chess — 1 Month' },
+export const STAT_LABELS = [
+  { key: 'activeUsers' as const, label: 'Active Users', suffix: '' },
+  { key: 'gamesSupported' as const, label: 'Games Supported', suffix: '' },
+  { key: 'reviewCount' as const, label: 'Customer Reviews', suffix: '+' },
 ];
 
 export const DISCORD_REACTIONS = [
@@ -589,3 +608,13 @@ export const DISCORD_REACTIONS = [
   { user: 'apexgod_77', message: 'Aimbot smoothness settings are perfect now', time: '26m ago' },
   { user: 'BaghdadGamer', message: 'Best prices in IQD, no conversion fees 💸', time: '41m ago' },
 ];
+
+export const HERO = {
+  eyebrow: 'BEST STORE',
+  headline: 'Premium Gaming',
+  headlineAccent: 'Services & Tools',
+  subtitle:
+    'Accounts, in-game currency, bypass tools, and game bundles — delivered fast with 24/7 support.',
+  primaryCta: { label: 'Browse Categories', href: '#categories' },
+  secondaryCta: { label: 'View Products', href: '#products' },
+};

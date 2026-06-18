@@ -1,0 +1,300 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { adminFetch } from '@/lib/admin-fetch';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import ImageUploadField from '@/components/admin/ImageUploadField';
+
+type Variant = {
+  id?: string;
+  plan_type: string | null;
+  duration: string | null;
+  price: number;
+  stock: number;
+  _delete?: boolean;
+};
+
+type Product = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  base_image: string | null;
+  base_price: number;
+  popularity: number;
+  is_featured: boolean;
+  category_id: string;
+};
+
+type Category = { id: string; name: string; slug: string };
+
+export default function AdminProductEditPage() {
+  const params = useParams();
+  const router = useRouter();
+  const slug = typeof params?.slug === 'string' ? params.slug : '';
+  const [product, setProduct] = useState<Product | null>(null);
+  const [variants, setVariants] = useState<Variant[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    const [prodRes, catRes] = await Promise.all([
+      adminFetch(`/api/admin/products/${slug}`),
+      adminFetch('/api/admin/categories'),
+    ]);
+    const prodJson = await prodRes.json();
+    const catJson = await catRes.json();
+    if (prodRes.ok) {
+      setProduct(prodJson.product);
+      setVariants(prodJson.variants ?? []);
+    }
+    if (catRes.ok) setCategories(catJson.categories ?? []);
+    setLoading(false);
+  }, [slug]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const save = async () => {
+    if (!product) return;
+    setSaving(true);
+    const res = await adminFetch(`/api/admin/products/${slug}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...product, variants }),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      toast.error('Save failed');
+      return;
+    }
+    const json = await res.json();
+    toast.success('Product saved');
+    if (json.slug && json.slug !== slug) {
+      router.replace(`/admin/products/${json.slug}`);
+    }
+  };
+
+  const remove = async () => {
+    if (!confirm('Delete this product permanently?')) return;
+    const res = await adminFetch(`/api/admin/products/${slug}`, { method: 'DELETE' });
+    if (!res.ok) {
+      toast.error('Delete failed');
+      return;
+    }
+    toast.success('Product deleted');
+    router.push('/admin/products');
+  };
+
+  const addVariant = () => {
+    setVariants([
+      ...variants,
+      { plan_type: null, duration: '1 Month', price: product?.base_price ?? 0, stock: 999 },
+    ]);
+  };
+
+  if (loading) return <p className="text-best-muted">Loading…</p>;
+  if (!product) return <p className="text-red-400">Product not found</p>;
+
+  return (
+    <div className="max-w-2xl">
+      <Link
+        href="/admin/products"
+        className="mb-4 inline-flex min-h-11 items-center gap-2 text-sm text-best-muted hover:text-best-cyan"
+      >
+        <ArrowLeft className="h-4 w-4" /> Back to catalog
+      </Link>
+
+      <h1 className="font-display text-2xl font-black uppercase">{product.name}</h1>
+
+      <div className="mt-8 space-y-4">
+        <ImageUploadField
+          label="Product image"
+          value={product.base_image ?? ''}
+          onChange={(url) => setProduct({ ...product, base_image: url })}
+          folder="products"
+        />
+
+        <div>
+          <Label>Name</Label>
+          <Input
+            value={product.name}
+            onChange={(e) => setProduct({ ...product, name: e.target.value })}
+            className="mt-1 bg-best-bg"
+          />
+        </div>
+
+        <div>
+          <Label>Slug</Label>
+          <Input
+            value={product.slug}
+            onChange={(e) => setProduct({ ...product, slug: e.target.value })}
+            className="mt-1 bg-best-bg"
+          />
+          <p className="mt-1 text-xs text-best-caption">Changing slug updates the product URL.</p>
+        </div>
+
+        <div>
+          <Label>Category</Label>
+          <Select
+            value={product.category_id}
+            onValueChange={(v) => setProduct({ ...product, category_id: v })}
+          >
+            <SelectTrigger className="mt-1 bg-best-bg">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label>Description</Label>
+          <Textarea
+            value={product.description ?? ''}
+            onChange={(e) => setProduct({ ...product, description: e.target.value })}
+            className="mt-1 bg-best-bg"
+          />
+        </div>
+
+        <div>
+          <Label>Base price (IQD)</Label>
+          <Input
+            type="number"
+            value={product.base_price}
+            onChange={(e) => setProduct({ ...product, base_price: Number(e.target.value) })}
+            className="mt-1 bg-best-bg"
+          />
+        </div>
+
+        <div>
+          <Label>Popularity (sort)</Label>
+          <Input
+            type="number"
+            value={product.popularity}
+            onChange={(e) => setProduct({ ...product, popularity: Number(e.target.value) })}
+            className="mt-1 bg-best-bg"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={product.is_featured}
+            onCheckedChange={(v) => setProduct({ ...product, is_featured: v })}
+          />
+          <Label>Featured</Label>
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <Label>Variants</Label>
+            <Button type="button" size="sm" variant="outline" onClick={addVariant}>
+              <Plus className="mr-1 h-4 w-4" /> Add
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {variants.map((v, i) =>
+              v._delete ? null : (
+                <div key={v.id ?? `new-${i}`} className="rounded-lg border border-best-border p-3 text-sm">
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Input
+                      value={v.plan_type ?? ''}
+                      onChange={(e) => {
+                        const next = [...variants];
+                        next[i] = { ...v, plan_type: e.target.value || null };
+                        setVariants(next);
+                      }}
+                      className="bg-best-bg"
+                      placeholder="Plan type"
+                    />
+                    <Input
+                      value={v.duration ?? ''}
+                      onChange={(e) => {
+                        const next = [...variants];
+                        next[i] = { ...v, duration: e.target.value || null };
+                        setVariants(next);
+                      }}
+                      className="bg-best-bg"
+                      placeholder="Duration"
+                    />
+                    <Input
+                      type="number"
+                      value={v.price}
+                      onChange={(e) => {
+                        const next = [...variants];
+                        next[i] = { ...v, price: Number(e.target.value) };
+                        setVariants(next);
+                      }}
+                      className="bg-best-bg"
+                      placeholder="Price"
+                    />
+                    <Input
+                      type="number"
+                      value={v.stock}
+                      onChange={(e) => {
+                        const next = [...variants];
+                        next[i] = { ...v, stock: Number(e.target.value) };
+                        setVariants(next);
+                      }}
+                      className="bg-best-bg"
+                      placeholder="Stock"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="mt-2 text-red-400 hover:text-red-300"
+                    onClick={() => {
+                      const next = [...variants];
+                      if (v.id) next[i] = { ...v, _delete: true };
+                      else next.splice(i, 1);
+                      setVariants(next);
+                    }}
+                  >
+                    <Trash2 className="mr-1 h-4 w-4" /> Remove
+                  </Button>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button onClick={save} disabled={saving} className="min-h-11 flex-1">
+            {saving ? 'Saving…' : 'Save product'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={remove}
+            className="min-h-11 border-red-500/40 text-red-400 hover:bg-red-500/10"
+          >
+            <Trash2 className="mr-2 h-4 w-4" /> Delete
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
