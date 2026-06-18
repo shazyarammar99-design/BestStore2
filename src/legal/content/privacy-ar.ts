@@ -119,9 +119,8 @@ export const PRIVACY_AR: LegalDocument = {
       paragraphs: [
         'قد نُحدّث هذه السياسة. يظهر تاريخ "آخر تحديث" أعلاه.',
         `للأسئلة أو الطلبات المتعلقة بالخصوصية، تواصل مع ${LEGAL_ENTITY}:`,
-        `واتساب: ${LEGAL_CONTACT.whatsapp}`,
         `ديسكورد: ${LEGAL_CONTACT.discordUrl}`,
-        `البريد: ${LEGAL_CONTACT.email}`,
+        ...(LEGAL_CONTACT.email ? [`البريد: ${LEGAL_CONTACT.email}`] : []),
       ],
     },
   ],

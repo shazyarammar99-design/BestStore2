@@ -37,7 +37,7 @@ const getCachedGamesSupported = unstable_cache(fetchGamesSupported, ['site-stats
   revalidate: 60,
 });
 
-async function fetchActiveUsers(): Promise<number> {
+async function fetchActiveUsersUncached(): Promise<number> {
   const admin = createAdminClient();
   if (!admin) return 0;
 
@@ -51,9 +51,13 @@ async function fetchActiveUsers(): Promise<number> {
   return count ?? 0;
 }
 
+const getCachedActiveUsers = unstable_cache(fetchActiveUsersUncached, ['site-stats-active'], {
+  revalidate: 60,
+});
+
 export async function getSiteStats(): Promise<SiteStats> {
   const [activeUsers, gamesSupported, reviewCount] = await Promise.all([
-    fetchActiveUsers(),
+    getCachedActiveUsers(),
     getCachedGamesSupported(),
     getDiscordVouchCount(),
   ]);

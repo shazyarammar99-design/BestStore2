@@ -4,6 +4,8 @@ import { getSiteStats } from '@/lib/site-stats';
 export async function GET() {
   const stats = await getSiteStats();
   return NextResponse.json(stats, {
-    headers: { 'Cache-Control': 'no-store' },
+    headers: {
+      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+    },
   });
 }

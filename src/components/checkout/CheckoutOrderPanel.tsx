@@ -22,8 +22,9 @@ import {
   type DeliveryFieldDef,
 } from '@/config/checkout-delivery-fields';
 
+import { SUPPORT_DISCORD_URL } from '@/config/contact';
+
 const CARD_SLUG = 'visa-mastercard';
-const WHATSAPP_URL = 'https://wa.me/9647503220525';
 
 const panelClass =
   'rounded-2xl border border-best-border bg-best-elevated/90 p-6 shadow-card-glow backdrop-blur-md md:p-7';
@@ -99,6 +100,7 @@ export function useCheckoutHandler({
       delivery: deliveryValues,
       sellerNotes: sellerNotes || undefined,
       promoCode: pricing.promoCode ?? undefined,
+      inventoryId: pricing.spinReward?.inventoryId,
     });
   };
 
@@ -241,7 +243,11 @@ export default function CheckoutOrderPanel({
         )}
         {showDiscount && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-best-muted">{t('checkout.discount')}</span>
+            <span className="text-best-muted">
+              {pricing.discountSource === 'reward'
+                ? t('checkout.spinRewardApplied', { name: pricing.discountLabel ?? '' })
+                : t('checkout.discount')}
+            </span>
             <span className="font-semibold text-emerald-400">
               -{formatPrice(pricing.discount)}
             </span>
@@ -291,12 +297,12 @@ export default function CheckoutOrderPanel({
           <p className="mt-2 text-center text-xs text-best-caption">
             {t('checkout.supportHint')}{' '}
             <a
-              href={WHATSAPP_URL}
+              href={SUPPORT_DISCORD_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="text-best-cyan hover:underline"
             >
-              {t('footer.whatsapp')}
+              {t('footer.discord')}
             </a>
           </p>
           <CheckoutTrustBadges />
