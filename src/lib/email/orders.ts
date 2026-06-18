@@ -11,6 +11,8 @@ export async function sendAdminOrderEmail(payload: OrderDiscordPayload): Promise
     <h2>New order — ${payload.shortId}</h2>
     <p><strong>Customer:</strong> ${payload.username}${payload.userEmail ? ` (${payload.userEmail})` : ''}</p>
     <p><strong>Total:</strong> ${payload.amount.toLocaleString()} IQD</p>
+    ${payload.discount && payload.discount > 0 ? `<p><strong>Discount:</strong> -${payload.discount.toLocaleString()} IQD${payload.discountLabel ? ` (${payload.discountLabel})` : ''}</p>` : ''}
+    ${payload.subtotal !== undefined && payload.subtotal !== payload.amount ? `<p><strong>Subtotal:</strong> ${payload.subtotal.toLocaleString()} IQD</p>` : ''}
     <p><strong>Payment:</strong> ${payload.paymentMethod ?? 'N/A'}</p>
     <p><strong>Items:</strong> ${payload.itemsSummary}</p>
     ${payload.deliverySummary ? `<p><strong>Delivery:</strong> ${payload.deliverySummary}</p>` : ''}

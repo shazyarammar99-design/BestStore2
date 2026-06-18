@@ -13,6 +13,8 @@ import {
   type DeliveryFieldDef,
 } from '@/config/checkout-delivery-fields';
 import { resolvePromoCode } from '@/lib/checkout-pricing';
+import type { SpinRewardSelection } from '@/lib/checkout-pricing';
+import SpinRewardsPicker from '@/components/checkout/SpinRewardsPicker';
 
 const inputClass =
   'h-11 rounded-xl border-best-border bg-best-bg/60 font-sans text-sm text-white placeholder:text-best-caption focus:border-best-cyan focus:shadow-cyan-glow focus-visible:ring-0';
@@ -28,6 +30,8 @@ export type CheckoutDetailsPanelProps = {
   onSellerNotesChange: (value: string) => void;
   appliedPromo: string | null;
   onApplyPromo: (code: string | null) => void;
+  appliedReward: SpinRewardSelection | null;
+  onApplyReward: (reward: SpinRewardSelection | null) => void;
   updateQuantity: (cartKey: string, quantity: number) => void;
   removeItem: (cartKey: string) => void;
 };
@@ -40,6 +44,8 @@ export default function CheckoutDetailsPanel({
   onSellerNotesChange,
   appliedPromo,
   onApplyPromo,
+  appliedReward,
+  onApplyReward,
   updateQuantity,
   removeItem,
 }: CheckoutDetailsPanelProps) {
@@ -64,6 +70,7 @@ export default function CheckoutDetailsPanel({
     }
     setPromoError(false);
     onApplyPromo(promoInput.trim().toUpperCase());
+    onApplyReward(null);
   };
 
   return (
@@ -205,6 +212,18 @@ export default function CheckoutDetailsPanel({
           <p className="mt-2 text-xs font-semibold text-red-400">{t('checkout.promoInvalid')}</p>
         )}
       </section>
+
+      <SpinRewardsPicker
+        selectedInventoryId={appliedReward?.inventoryId ?? null}
+        onSelect={(reward) => {
+          onApplyReward(reward);
+          if (reward) {
+            onApplyPromo(null);
+            setPromoInput('');
+            setPromoError(false);
+          }
+        }}
+      />
 
       <section className={cardClass}>
         <h2 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-best-muted">

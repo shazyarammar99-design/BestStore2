@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/LocaleContext';
 import { authFetch } from '@/lib/auth-fetch';
-import { SPIN_TEST_MODE } from '@/config/spin';
 import {
   buildWheelSegments,
   CELEBRATION_RESUME_MS,
@@ -141,8 +140,8 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
         prev
           ? {
               ...prev,
-              canSpinToday: SPIN_TEST_MODE ? true : false,
-              nextSpinAt: SPIN_TEST_MODE
+              canSpinToday: prev.testMode ? true : false,
+              nextSpinAt: prev.testMode
                 ? null
                 : new Date(
                     Date.UTC(
@@ -201,6 +200,12 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
             {statusMessage}
           </p>
 
+          {status?.testMode && user && phase === 'idle' && (
+            <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center text-xs font-semibold uppercase tracking-widest text-amber-300">
+              Test mode — spins are not saved
+            </p>
+          )}
+
           {!user && !authLoading && (
             <p className="text-center text-xs font-bold uppercase tracking-widest text-best-cyan">
               {t('spin.signInToSpin')}{' '}
@@ -210,7 +215,7 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
             </p>
           )}
 
-          {user && !SPIN_TEST_MODE && status?.requiresPurchase && phase === 'idle' && (
+          {user && !status?.testMode && status?.requiresPurchase && phase === 'idle' && (
             <>
               <p className="max-w-sm text-center font-heading text-sm font-bold uppercase tracking-widest text-best-gold">
                 {t('spin.purchaseRequired', { min: String(status.minPurchaseIqd) })}
@@ -223,7 +228,7 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
             </>
           )}
 
-          {user && !SPIN_TEST_MODE && spunToday && phase === 'idle' && !status?.requiresPurchase && (
+          {user && !status?.testMode && spunToday && phase === 'idle' && !status?.requiresPurchase && (
             <p className="text-center font-heading text-sm font-bold uppercase tracking-widest text-best-cyan">
               {t('spin.comeBack')} {formatCountdown(dailyCountdown)}
             </p>
