@@ -83,7 +83,8 @@ export default function ParticleCanvas() {
     let running = true;
     let visible = true;
     let tick = 0;
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
+    timer.connect(document);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -104,7 +105,8 @@ export default function ParticleCanvas() {
       if (!running || !visible) return;
 
       tick += 1;
-      const elapsed = clock.getElapsedTime();
+      timer.update();
+      const elapsed = timer.getElapsed();
 
       // Update particle positions every other frame — visually identical, half the CPU.
       if (tick % 2 === 0) {
@@ -125,6 +127,7 @@ export default function ParticleCanvas() {
 
     return () => {
       cancelAnimationFrame(frameId);
+      timer.disconnect();
       observer.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('mousemove', onMouseMove);
