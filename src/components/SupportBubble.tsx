@@ -2,12 +2,11 @@
 
 import { useState, type FormEvent } from 'react';
 import { MessageCircle, X } from 'lucide-react';
+import { SUPPORT_DISCORD_URL } from '@/config/contact';
 import { useTranslation } from '@/context/LocaleContext';
 
-const WHATSAPP_URL = 'https://wa.me/9647503220525';
-
-function openWhatsApp(message: string) {
-  const url = `${WHATSAPP_URL}?text=${encodeURIComponent(message)}`;
+function openDiscord(message: string) {
+  const url = `${SUPPORT_DISCORD_URL}${message ? `?message=${encodeURIComponent(message)}` : ''}`;
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
@@ -18,8 +17,10 @@ export default function SupportBubble() {
 
   const sendMessage = (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed) return;
-    openWhatsApp(`Hi BEST STORE Support,\n\n${trimmed}`);
+    const body = trimmed
+      ? `Hi BEST STORE Support,\n\n${trimmed}`
+      : 'Hi BEST STORE Support, I need help with my order.';
+    openDiscord(body);
     setMessage('');
     setOpen(false);
   };
@@ -48,7 +49,7 @@ export default function SupportBubble() {
                 </p>
                 <p className="flex items-center gap-1.5 text-[11px] text-white/85">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  WhatsApp — replies in minutes
+                  {t('support.discordHint')}
                 </p>
               </div>
             </div>
@@ -64,7 +65,9 @@ export default function SupportBubble() {
 
           <div className="space-y-3 border-b border-best-border p-4">
             <div className="max-w-[90%] rounded-lg rounded-tl-none border border-best-border bg-best-elevated px-3.5 py-2.5">
-              <p className="text-sm leading-relaxed text-best-muted">{t('support.greeting')} WhatsApp.</p>
+              <p className="text-sm leading-relaxed text-best-muted">
+                {t('support.greeting')} Discord.
+              </p>
             </div>
             <div className="flex flex-wrap gap-2">
               {ui.support.suggestions.map((q) => (
@@ -90,7 +93,6 @@ export default function SupportBubble() {
             />
             <button
               type="submit"
-              disabled={!message.trim()}
               className="shrink-0 rounded-lg bg-best-cyan px-4 py-2.5 font-heading text-xs font-bold uppercase tracking-wider text-best-bg transition-all hover:shadow-cyan-glow disabled:cursor-not-allowed disabled:opacity-40"
             >
               Send

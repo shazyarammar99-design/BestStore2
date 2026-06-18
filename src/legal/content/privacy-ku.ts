@@ -119,9 +119,8 @@ export const PRIVACY_KU: LegalDocument = {
       paragraphs: [
         'ڕەنگە ئەم سیاسەتە نوێ بکەینەوە. بەرواری "دوایین نوێکردنەوە" لە سەرەوە دەردەکەوێت.',
         `بۆ پرسیاری تایبەتمەندی پەیوەندی بە ${LEGAL_ENTITY} بکە:`,
-        `واتساپ: ${LEGAL_CONTACT.whatsapp}`,
         `دیسکۆرد: ${LEGAL_CONTACT.discordUrl}`,
-        `ئیمەیڵ: ${LEGAL_CONTACT.email}`,
+        ...(LEGAL_CONTACT.email ? [`ئیمەیڵ: ${LEGAL_CONTACT.email}`] : []),
       ],
     },
   ],

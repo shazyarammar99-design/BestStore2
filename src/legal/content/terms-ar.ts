@@ -147,9 +147,8 @@ export const TERMS_AR: LegalDocument = {
       title: '١٧. التواصل',
       paragraphs: [
         `للأسئلة حول هذه الشروط، تواصل مع ${LEGAL_ENTITY}:`,
-        `واتساب: ${LEGAL_CONTACT.whatsapp}`,
         `ديسكورد: ${LEGAL_CONTACT.discordUrl}`,
-        `البريد: ${LEGAL_CONTACT.email}`,
+        ...(LEGAL_CONTACT.email ? [`البريد: ${LEGAL_CONTACT.email}`] : []),
       ],
     },
   ],

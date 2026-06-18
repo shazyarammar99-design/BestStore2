@@ -121,9 +121,8 @@ export const PRIVACY_EN: LegalDocument = {
       paragraphs: [
         'We may update this Privacy Policy from time to time. The "Last updated" date shows when changes were made.',
         `For privacy questions or requests, contact ${LEGAL_ENTITY}:`,
-        `WhatsApp: ${LEGAL_CONTACT.whatsapp}`,
         `Discord: ${LEGAL_CONTACT.discordUrl}`,
-        `Email: ${LEGAL_CONTACT.email}`,
+        ...(LEGAL_CONTACT.email ? [`Email: ${LEGAL_CONTACT.email}`] : []),
       ],
     },
   ],
