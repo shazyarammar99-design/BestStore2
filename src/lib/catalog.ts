@@ -15,6 +15,8 @@ export type Category = {
   description: string | null;
   tag: string | null;
   sort_order: number;
+  name_translations?: Record<string, string> | null;
+  description_translations?: Record<string, string> | null;
 };
 
 export type ProductVariant = {
@@ -40,6 +42,8 @@ export type Product = {
   review_count: number;
   popularity: number;
   is_featured: boolean;
+  name_translations?: Record<string, string> | null;
+  description_translations?: Record<string, string> | null;
 };
 
 export type ProductWithVariants = Product & {

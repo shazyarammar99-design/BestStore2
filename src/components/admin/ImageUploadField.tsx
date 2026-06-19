@@ -7,6 +7,7 @@ import { adminFetch } from '@/lib/admin-fetch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import ImageCropModal from './ImageCropModal';
 
 type ImageUploadFieldProps = {
   label?: string;
@@ -24,14 +25,16 @@ export default function ImageUploadField({
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
 
-  const handleFile = async (file: File | null) => {
-    if (!file) return;
+  const handleUpload = async (blob: Blob) => {
+    setCropFile(null);
     setUploading(true);
     setError(null);
     try {
       const form = new FormData();
-      form.append('file', file);
+      // Use the original file name or a generic one
+      form.append('file', new File([blob], cropFile?.name ?? 'cropped.jpg', { type: blob.type }));
       form.append('folder', folder);
       const res = await adminFetch('/api/admin/upload', { method: 'POST', body: form });
       const json = await res.json();
@@ -64,7 +67,11 @@ export default function ImageUploadField({
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) setCropFile(file);
+            e.target.value = ''; // reset so same file can be selected again
+          }}
         />
         <Button
           type="button"
@@ -76,6 +83,11 @@ export default function ImageUploadField({
         </Button>
       </div>
       {error && <p className="text-sm text-red-400">{error}</p>}
+      <ImageCropModal
+        imageFile={cropFile}
+        onCancel={() => setCropFile(null)}
+        onCropComplete={handleUpload}
+      />
     </div>
   );
 }

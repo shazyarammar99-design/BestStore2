@@ -21,7 +21,15 @@ export async function PATCH(request: Request, { params }: Params) {
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const updates: Record<string, unknown> = {};
-  for (const key of ['name', 'description', 'tag', 'icon_url', 'sort_order'] as const) {
+  for (const key of [
+    'name',
+    'description',
+    'tag',
+    'icon_url',
+    'sort_order',
+    'name_translations',
+    'description_translations',
+  ] as const) {
     if (key in body) updates[key] = body[key];
   }
 

@@ -71,7 +71,7 @@ export default function HowItWorks() {
       (videoSettings.videoType === 'upload' && embed.type === 'direct'));
 
   return (
-    <section className="py-24 md:py-32">
+    <section className="py-16 md:py-32">
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeader
           eyebrow={t('sections.howItWorks').toUpperCase()}

@@ -94,13 +94,13 @@ export default function ProductMediaGallery({
   const activeItem = items[activeIndex] ?? items[0];
 
   return (
-    <div className="flex gap-3">
+    <div className="flex flex-col-reverse gap-3 md:flex-row">
       {/* Thumbnail strip */}
-      <div className="flex w-[72px] shrink-0 flex-col items-center gap-1.5">
+      <div className="flex w-full md:w-[72px] shrink-0 flex-row md:flex-col items-center gap-1.5">
         <button
           type="button"
           onClick={() => scrollThumbs('up')}
-          className="flex h-6 w-full items-center justify-center rounded-md border border-best-border bg-best-elevated text-best-muted transition-colors hover:text-best-cyan"
+          className="hidden md:flex h-6 w-full items-center justify-center rounded-md border border-best-border bg-best-elevated text-best-muted transition-colors hover:text-best-cyan"
           aria-label="Scroll thumbnails up"
         >
           <ChevronUp className="h-4 w-4" />
@@ -108,7 +108,7 @@ export default function ProductMediaGallery({
 
         <div
           ref={thumbContainerRef}
-          className="flex max-h-[340px] flex-col gap-1.5 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-best-border"
+          className="flex md:max-h-[340px] flex-row md:flex-col gap-1.5 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-best-border w-full md:w-auto"
           style={{ scrollbarWidth: 'thin' }}
         >
           {items.map((item, i) => (
@@ -154,7 +154,7 @@ export default function ProductMediaGallery({
         <button
           type="button"
           onClick={() => scrollThumbs('down')}
-          className="flex h-6 w-full items-center justify-center rounded-md border border-best-border bg-best-elevated text-best-muted transition-colors hover:text-best-cyan"
+          className="hidden md:flex h-6 w-full items-center justify-center rounded-md border border-best-border bg-best-elevated text-best-muted transition-colors hover:text-best-cyan"
           aria-label="Scroll thumbnails down"
         >
           <ChevronDown className="h-4 w-4" />

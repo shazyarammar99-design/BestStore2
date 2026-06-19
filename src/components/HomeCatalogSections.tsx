@@ -9,7 +9,7 @@ import { useTranslation } from '@/context/LocaleContext';
 export function HomeCategoriesSection({ categories }: { categories: Category[] }) {
   const { t } = useTranslation();
   return (
-    <section id="categories" className="bg-best-elevated/40 py-24 md:py-32">
+    <section id="categories" className="bg-best-elevated/40 py-16 md:py-32">
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeader
           eyebrow={t('sections.categories').toUpperCase()}
@@ -27,7 +27,7 @@ export function HomeCategoriesSection({ categories }: { categories: Category[] }
 export function HomeProductsSection({ products }: { products: Product[] }) {
   const { t } = useTranslation();
   return (
-    <section id="products" className="py-24 md:py-32">
+    <section id="products" className="py-16 md:py-32">
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeader
           eyebrow={t('sections.featured').toUpperCase()}

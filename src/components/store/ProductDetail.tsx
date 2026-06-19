@@ -106,7 +106,7 @@ export default function ProductDetail({ product: rawProduct }: { product: Produc
 
   return (
     <>
-    <div className="grid grid-cols-1 gap-10 pb-28 lg:grid-cols-2 lg:pb-0">
+    <div className="grid grid-cols-1 gap-6 pb-28 lg:gap-10 lg:grid-cols-2 lg:pb-0">
       {/* Visual */}
       <ProductMediaGallery
         mainImage={imageUrl}

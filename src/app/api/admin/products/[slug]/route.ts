@@ -69,6 +69,8 @@ export async function PATCH(request: Request, { params }: Params) {
     'popularity',
     'is_featured',
     'category_id',
+    'name_translations',
+    'description_translations',
   ] as const) {
     if (key in body) productUpdates[key] = body[key];
   }

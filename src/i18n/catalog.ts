@@ -377,31 +377,49 @@ function localizeTag(tag: string | null | undefined, locale: Locale): string | n
   return entry ? pick(entry, locale, tag) : tag;
 }
 
-export function localizeCategory<T extends { slug?: string; id?: string; name: string; description?: string | null; tag?: string | null }>(
-  category: T,
-  locale: Locale
-): T {
+export function localizeCategory<
+  T extends {
+    slug?: string;
+    id?: string;
+    name: string;
+    description?: string | null;
+    tag?: string | null;
+    name_translations?: Record<string, string> | null;
+    description_translations?: Record<string, string> | null;
+  }
+>(category: T, locale: Locale): T {
   const key = category.slug ?? category.id ?? '';
   const entry = CATEGORY_I18N[key];
+
+  // Check DB translations first
+  const dbName = category.name_translations?.[locale];
+  const dbDesc = category.description_translations?.[locale];
+
+  const resolvedName = dbName || (entry ? pick(entry.name, locale, category.name) : category.name);
+  const resolvedDesc = dbDesc || (entry?.description
+    ? pick(entry.description, locale, category.description ?? '')
+    : category.description);
+
   return {
     ...category,
-    name: transliterateBest(
-      entry ? pick(entry.name, locale, category.name) : category.name,
-      locale
-    ),
-    description: entry?.description
-      ? pick(entry.description, locale, category.description ?? '')
-      : category.description,
+    name: transliterateBest(resolvedName, locale),
+    description: resolvedDesc,
     tag: entry?.tag
       ? pick(entry.tag, locale, category.tag ?? '')
       : localizeTag(category.tag, locale) ?? category.tag,
   };
 }
 
-export function localizeProduct<T extends { slug?: string; id?: string; name: string; description?: string | null }>(
-  product: T,
-  locale: Locale
-): T {
+export function localizeProduct<
+  T extends {
+    slug?: string;
+    id?: string;
+    name: string;
+    description?: string | null;
+    name_translations?: Record<string, string> | null;
+    description_translations?: Record<string, string> | null;
+  }
+>(product: T, locale: Locale): T {
   const key = product.slug ?? product.id ?? '';
   const entry = PRODUCT_I18N[key];
   const rawDescription = product.description ?? '';
@@ -409,15 +427,19 @@ export function localizeProduct<T extends { slug?: string; id?: string; name: st
     entry?.description ??
     (rawDescription ? PRODUCT_DESCRIPTION_I18N[rawDescription] : undefined);
 
+  // Check DB translations first
+  const dbName = product.name_translations?.[locale];
+  const dbDesc = product.description_translations?.[locale];
+
+  const resolvedName = dbName || (entry ? pick(entry.name, locale, product.name) : product.name);
+  const resolvedDesc = dbDesc || (descriptionEntry
+    ? pick(descriptionEntry, locale, rawDescription)
+    : product.description);
+
   return {
     ...product,
-    name: transliterateBest(
-      entry ? pick(entry.name, locale, product.name) : product.name,
-      locale
-    ),
-    description: descriptionEntry
-      ? pick(descriptionEntry, locale, rawDescription)
-      : product.description,
+    name: transliterateBest(resolvedName, locale),
+    description: resolvedDesc,
   };
 }
 

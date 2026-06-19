@@ -100,7 +100,7 @@ export default function FAQ() {
   };
 
   return (
-    <section id="faq" className="py-24 md:py-32">
+    <section id="faq" className="py-16 md:py-32">
       <div className="mx-auto max-w-3xl px-6">
         <SectionHeader eyebrow={t('sections.faq')} headline={t('sections.faq')} />
 

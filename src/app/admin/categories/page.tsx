@@ -28,6 +28,8 @@ type Category = {
   icon_url: string | null;
   sort_order: number;
   product_count?: number;
+  name_translations?: Record<string, string> | null;
+  description_translations?: Record<string, string> | null;
 };
 
 const emptyCategory = (): Category => ({
@@ -96,6 +98,8 @@ export default function AdminCategoriesPage() {
           tag: editing.tag,
           icon_url: editing.icon_url,
           sort_order: editing.sort_order,
+          name_translations: editing.name_translations,
+          description_translations: editing.description_translations,
         }),
       });
       setSaving(false);
@@ -222,10 +226,36 @@ export default function AdminCategoriesPage() {
                 folder="categories"
               />
               <div>
-                <Label>Name</Label>
+                <Label>Name (English)</Label>
                 <Input
                   value={editing.name}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                  className="mt-1 bg-best-bg"
+                />
+              </div>
+              <div>
+                <Label>Name (Kurdish)</Label>
+                <Input
+                  value={editing.name_translations?.ku ?? ''}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      name_translations: { ...editing.name_translations, ku: e.target.value },
+                    })
+                  }
+                  className="mt-1 bg-best-bg"
+                />
+              </div>
+              <div>
+                <Label>Name (Arabic)</Label>
+                <Input
+                  value={editing.name_translations?.ar ?? ''}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      name_translations: { ...editing.name_translations, ar: e.target.value },
+                    })
+                  }
                   className="mt-1 bg-best-bg"
                 />
               </div>
@@ -252,10 +282,36 @@ export default function AdminCategoriesPage() {
                 />
               </div>
               <div>
-                <Label>Description</Label>
+                <Label>Description (English)</Label>
                 <Textarea
                   value={editing.description ?? ''}
                   onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                  className="mt-1 bg-best-bg"
+                />
+              </div>
+              <div>
+                <Label>Description (Kurdish)</Label>
+                <Textarea
+                  value={editing.description_translations?.ku ?? ''}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      description_translations: { ...editing.description_translations, ku: e.target.value },
+                    })
+                  }
+                  className="mt-1 bg-best-bg"
+                />
+              </div>
+              <div>
+                <Label>Description (Arabic)</Label>
+                <Textarea
+                  value={editing.description_translations?.ar ?? ''}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      description_translations: { ...editing.description_translations, ar: e.target.value },
+                    })
+                  }
                   className="mt-1 bg-best-bg"
                 />
               </div>
