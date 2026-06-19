@@ -1,3 +1,5 @@
+import type { RefObject } from 'react';
+
 export type Prize = {
   id: string;
   name: string;
@@ -85,6 +87,10 @@ export interface PrizeOutcome {
   prize: SpinResult['prize'];
 }
 
+export type SpinWheelCanvasHandle = {
+  getRotation: () => number;
+};
+
 export interface SpinWheelCanvasProps {
   segments: WheelSegment[];
   phase: WheelPhase;
@@ -95,4 +101,6 @@ export interface SpinWheelCanvasProps {
   spinDisabled?: boolean;
   onSpinTransitionEnd?: () => void;
   spinDurationMs?: number;
+  awaitingResult?: boolean;
+  apiRef?: RefObject<SpinWheelCanvasHandle | null>;
 }
