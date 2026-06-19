@@ -1,9 +1,11 @@
 'use client';
 
 import { forwardRef, useCallback, useEffect, useId, useImperativeHandle, useRef, useState } from 'react';
-import type { SpinWheelCanvasProps } from '@/types/spin';
+import type { SpinWheelCanvasHandle, SpinWheelCanvasProps } from '@/types/spin';
 import {
   computeIdleRotation,
+  computePendingSpinRotation,
+  computeSeamlessLandingDuration,
   computeSpinRotation,
   drawWheel,
   getPointerSegmentIndex,
@@ -32,6 +34,8 @@ const SpinWheelCanvas = forwardRef<HTMLDivElement, SpinWheelCanvasProps>(functio
     spinDisabled = false,
     onSpinTransitionEnd,
     spinDurationMs,
+    awaitingResult = false,
+    apiRef,
   },
   ref
 ) {
@@ -68,6 +72,9 @@ const SpinWheelCanvas = forwardRef<HTMLDivElement, SpinWheelCanvasProps>(functio
   const segmentsLengthRef = useRef(segments.length);
   const onSpinEndRef = useRef(onSpinTransitionEnd);
   const spinDurationMsRef = useRef(spinDurationMs);
+  const landingDurationMsRef = useRef(spinDurationMs ?? 3000);
+  const awaitingResultRef = useRef(awaitingResult);
+  const prevAwaitingResultRef = useRef(awaitingResult);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -82,12 +89,44 @@ const SpinWheelCanvas = forwardRef<HTMLDivElement, SpinWheelCanvasProps>(functio
   }, [spinDurationMs]);
 
   useEffect(() => {
+    awaitingResultRef.current = awaitingResult;
+  }, [awaitingResult]);
+
+  useEffect(() => {
+    if (phase !== 'spinning') {
+      prevAwaitingResultRef.current = awaitingResult;
+      return;
+    }
+
+    if (prevAwaitingResultRef.current && !awaitingResult) {
+      spinFromRef.current = rotationRef.current;
+      spinStartRef.current = performance.now();
+      spinEndedRef.current = false;
+      lastTickSegmentRef.current = getPointerSegmentIndex(spinFromRef.current, segmentsLengthRef.current);
+      const distance = targetRotationRef.current - spinFromRef.current;
+      landingDurationMsRef.current = computeSeamlessLandingDuration(
+        distance,
+        reducedMotionRef.current,
+        spinDurationMsRef.current
+      );
+    }
+
+    prevAwaitingResultRef.current = awaitingResult;
+  }, [awaitingResult, phase]);
+
+  useEffect(() => {
     segmentsLengthRef.current = segments.length;
   }, [segments.length]);
 
   useEffect(() => {
     onSpinEndRef.current = onSpinTransitionEnd;
   }, [onSpinTransitionEnd]);
+
+  const fallbackApiRef = useRef<SpinWheelCanvasHandle | null>(null);
+
+  useImperativeHandle(apiRef ?? fallbackApiRef, () => ({
+    getRotation: () => rotationRef.current,
+  }));
 
   useImperativeHandle(ref, () => containerRef.current as HTMLDivElement);
 
@@ -200,6 +239,8 @@ const SpinWheelCanvas = forwardRef<HTMLDivElement, SpinWheelCanvasProps>(functio
         rotationRef.current = rotation;
       } else if (currentPhase === 'spinning') {
         idleStartRef.current = 0;
+        const waiting = awaitingResultRef.current;
+
         if (spinStartRef.current === 0) {
           spinStartRef.current = now;
           spinFromRef.current = rotationRef.current;
@@ -207,40 +248,54 @@ const SpinWheelCanvas = forwardRef<HTMLDivElement, SpinWheelCanvasProps>(functio
           lastTickSegmentRef.current = getPointerSegmentIndex(spinFromRef.current, segmentCount);
           lastTickSoundMsRef.current = 0;
         }
-        const duration = getSpinDuration(reduced, spinDurationMsRef.current);
-        const elapsed = now - spinStartRef.current;
-        rotation = computeSpinRotation(
-          spinFromRef.current,
-          targetRotation,
-          elapsed,
-          duration,
-          reduced
-        );
-        rotationRef.current = rotation;
+
+        if (waiting) {
+          rotation = computePendingSpinRotation(
+            spinFromRef.current,
+            now - spinStartRef.current
+          );
+          rotationRef.current = rotation;
+        } else {
+          const duration = getSpinDuration(reduced, landingDurationMsRef.current);
+          const elapsed = now - spinStartRef.current;
+          rotation = computeSpinRotation(
+            spinFromRef.current,
+            targetRotation,
+            elapsed,
+            duration,
+            reduced
+          );
+          rotationRef.current = rotation;
+
+          if (elapsed >= duration && !spinEndedRef.current) {
+            spinEndedRef.current = true;
+            spinStartRef.current = 0;
+            rotationRef.current = computeSpinRotation(
+              spinFromRef.current,
+              targetRotation,
+              duration,
+              duration,
+              reduced
+            );
+            onSpinEndRef.current?.();
+          }
+        }
 
         if (!reduced) {
+          const elapsed = now - spinStartRef.current;
+          const duration = getSpinDuration(
+            reduced,
+            waiting ? spinDurationMsRef.current : landingDurationMsRef.current
+          );
           const segIdx = getPointerSegmentIndex(rotation, segmentCount);
           if (segIdx !== lastTickSegmentRef.current) {
             lastTickSegmentRef.current = segIdx;
-            const minTickGapMs = elapsed > duration * 0.65 ? 120 : 70;
+            const minTickGapMs = waiting ? 70 : elapsed > duration * 0.65 ? 120 : 70;
             if (now - lastTickSoundMsRef.current >= minTickGapMs) {
               lastTickSoundMsRef.current = now;
               playTick();
             }
           }
-        }
-
-        if (elapsed >= duration && !spinEndedRef.current) {
-          spinEndedRef.current = true;
-          spinStartRef.current = 0;
-          rotationRef.current = computeSpinRotation(
-            spinFromRef.current,
-            targetRotation,
-            duration,
-            duration,
-            reduced
-          );
-          onSpinEndRef.current?.();
         }
       } else if (currentPhase === 'celebrating') {
         idleStartRef.current = 0;
