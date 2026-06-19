@@ -91,24 +91,6 @@ export default function ProductMediaGallery({
     );
   }
 
-  // Single item — no thumbnails
-  if (items.length === 1) {
-    const item = items[0];
-    return (
-      <div className="relative overflow-hidden rounded-2xl border border-best-border bg-gradient-to-br from-best-purple/25 via-best-surface to-best-cyan/10">
-        {item.type === 'image' ? (
-          <img
-            src={item.url}
-            alt={productName}
-            className="aspect-square w-full object-cover"
-          />
-        ) : (
-          <MediaViewer item={item} productName={productName} />
-        )}
-      </div>
-    );
-  }
-
   const activeItem = items[activeIndex] ?? items[0];
 
   return (

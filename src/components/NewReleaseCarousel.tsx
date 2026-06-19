@@ -87,17 +87,18 @@ export default function NewReleaseCarousel() {
           </p>
         </div>
 
-        <Carousel
-          setApi={setApi}
-          opts={{ align: 'start', loop: true, direction: 'ltr' }}
-          className="relative"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => {
-            setIsPaused(false);
-            restartProgress();
-          }}
-        >
-          <CarouselContent>
+        <div dir="ltr">
+          <Carousel
+            setApi={setApi}
+            opts={{ align: 'start', loop: true, direction: 'ltr' }}
+            className="relative"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => {
+              setIsPaused(false);
+              restartProgress();
+            }}
+          >
+            <CarouselContent>
             {releases.map((release, index) => (
               <CarouselItem key={release.id}>
                 <article className="relative overflow-hidden rounded-2xl border border-best-border bg-best-elevated">
@@ -170,6 +171,7 @@ export default function NewReleaseCarousel() {
             </>
           )}
         </Carousel>
+        </div>
       </div>
     </section>
   );

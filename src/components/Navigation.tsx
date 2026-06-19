@@ -64,6 +64,7 @@ export default function Navigation() {
   return (
     <>
       <header
+        dir="ltr"
         className={`fixed left-0 right-0 top-0 z-50 border-b transition-all duration-300 ${
           scrolled
             ? 'border-best-border bg-best-bg/95 backdrop-blur-md'
