@@ -43,6 +43,8 @@ type Product = {
   popularity: number;
   is_featured: boolean;
   category_id: string;
+  name_translations?: Record<string, string> | null;
+  description_translations?: Record<string, string> | null;
 };
 
 type Category = { id: string; name: string; slug: string };
