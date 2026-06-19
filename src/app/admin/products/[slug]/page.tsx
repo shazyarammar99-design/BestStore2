@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import ImageUploadField from '@/components/admin/ImageUploadField';
+import VideoUploadField from '@/components/admin/VideoUploadField';
 
 type Variant = {
   id?: string;
@@ -35,6 +36,8 @@ type Product = {
   slug: string;
   description: string | null;
   base_image: string | null;
+  video_url: string | null;
+  gallery_images: string[];
   base_price: number;
   popularity: number;
   is_featured: boolean;
@@ -131,6 +134,51 @@ export default function AdminProductEditPage() {
           onChange={(url) => setProduct({ ...product, base_image: url })}
           folder="products"
         />
+
+        <VideoUploadField
+          label="Product video (MP4/WebM or YouTube URL)"
+          value={product.video_url ?? ''}
+          onChange={(url) => setProduct({ ...product, video_url: url || null })}
+        />
+
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <Label>Gallery images</Label>
+            <ImageUploadField
+              label=""
+              value=""
+              onChange={(url) => {
+                if (!url) return;
+                setProduct({
+                  ...product,
+                  gallery_images: [...(product.gallery_images ?? []), url],
+                });
+              }}
+              folder="products"
+            />
+          </div>
+          {(product.gallery_images ?? []).length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {(product.gallery_images ?? []).map((img, i) => (
+                <div key={`gallery-${i}`} className="group relative overflow-hidden rounded-lg border border-best-border">
+                  <img src={img} alt={`Gallery ${i + 1}`} className="aspect-square w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = [...(product.gallery_images ?? [])];
+                      next.splice(i, 1);
+                      setProduct({ ...product, gallery_images: next });
+                    }}
+                    className="absolute end-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500/80 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="mt-1 text-xs text-best-caption">Upload additional product screenshots. These appear in the product gallery.</p>
+        </div>
 
         <div>
           <Label>Name</Label>

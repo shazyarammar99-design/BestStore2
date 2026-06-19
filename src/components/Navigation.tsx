@@ -122,7 +122,7 @@ export default function Navigation() {
             >
               <ShoppingBag className="h-5 w-5" />
               {itemCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-best-gold px-1 font-heading text-[10px] font-bold text-best-bg">
+                <span className="absolute -end-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-best-gold px-1 font-heading text-[10px] font-bold text-best-bg">
                   {itemCount > 99 ? '99+' : itemCount}
                 </span>
               )}
