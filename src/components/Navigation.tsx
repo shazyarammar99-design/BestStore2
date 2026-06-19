@@ -3,19 +3,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, Menu, X, LogIn } from 'lucide-react';
+import { ShoppingBag, Menu, X, LogIn, Search } from 'lucide-react';
 import LogoBrand from '@/components/LogoBrand';
 import CurrencySelect from '@/components/CurrencySelect';
 import LanguageSelect from '@/components/LanguageSelect';
 import ProfileDropdown from '@/components/account/ProfileDropdown';
 import AccountMobileMenu from '@/components/account/AccountMobileMenu';
-import { NavMegaMenuDesktop, NavMegaMenuMobile } from '@/components/NavMegaMenu';
-import { CATEGORY_MENU, PRODUCT_MENU } from '@/data/navigation';
-import type { NavItem } from '@/data/navigation';
+import GlobalSearchMenu from '@/components/layout/GlobalSearchMenu';
 import { useStore } from '@/context/StoreContext';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/LocaleContext';
-import { localizeNavItem } from '@/i18n/catalog';
 import { useProfile } from '@/context/ProfileContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -27,9 +24,7 @@ export default function Navigation() {
   const { t, locale } = useTranslation();
   const { user, loading: authLoading, signOut } = useAuth();
   const { profile } = useProfile();
-
-  const categoryMenu = CATEGORY_MENU.map((item) => localizeNavItem(item, locale));
-  const productMenu = PRODUCT_MENU.map((item) => localizeNavItem(item, locale));
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const initials = (profile?.username ?? user?.email ?? '?').slice(0, 2).toUpperCase();
 
@@ -52,14 +47,6 @@ export default function Navigation() {
     };
   }, [mobileOpen]);
 
-  const handleNavSelect = (item: NavItem) => {
-    setMobileOpen(false);
-    if (item.productId) {
-      router.push(`/product/${item.productId}`);
-    } else if (item.categoryId) {
-      router.push(`/category/${item.categoryId}`);
-    }
-  };
 
   return (
     <>
@@ -75,16 +62,13 @@ export default function Navigation() {
           <LogoBrand />
 
           <nav className="hidden items-center gap-8 lg:flex">
-            <NavMegaMenuDesktop
-              label={t('nav.categories')}
-              items={categoryMenu}
-              onSelect={handleNavSelect}
-            />
-            <NavMegaMenuDesktop
-              label={t('nav.products')}
-              items={productMenu}
-              onSelect={handleNavSelect}
-            />
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="flex items-center gap-2 font-heading text-sm font-semibold uppercase tracking-widest text-best-cyan transition-all duration-200 hover:text-white hover:text-glow-cyan"
+            >
+              <Search className="h-5 w-5" />
+              {t('nav.search') || 'Search'}
+            </button>
             <Link
               href="/leaderboard"
               className="font-heading text-sm font-semibold uppercase tracking-widest text-best-muted transition-colors hover:text-best-cyan"
@@ -147,12 +131,16 @@ export default function Navigation() {
             <CurrencySelect className="flex h-10 min-w-[5.5rem] rounded-lg border-best-border bg-transparent font-heading text-xs font-semibold text-best-muted shadow-none hover:border-best-cyan hover:text-best-cyan" />
             <LanguageSelect className="flex h-10 min-w-[6.5rem] rounded-lg border-best-border bg-transparent font-heading text-xs font-semibold text-best-muted shadow-none hover:border-best-cyan hover:text-best-cyan" />
           </div>
-          <NavMegaMenuMobile
-            label={t('nav.categories')}
-            items={categoryMenu}
-            onSelect={handleNavSelect}
-          />
-          <NavMegaMenuMobile label={t('nav.products')} items={productMenu} onSelect={handleNavSelect} />
+          <button
+            onClick={() => {
+              setMobileOpen(false);
+              setSearchOpen(true);
+            }}
+            className="flex items-center gap-2 font-display text-2xl font-bold uppercase tracking-widest text-best-cyan hover:text-white"
+          >
+            <Search className="h-6 w-6" />
+            {t('nav.search') || 'Search'}
+          </button>
           <Link
             href="/leaderboard"
             onClick={() => setMobileOpen(false)}
@@ -191,6 +179,8 @@ export default function Navigation() {
           )}
         </div>
       )}
+
+      <GlobalSearchMenu open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }
