@@ -11,6 +11,7 @@ import { useFormatCurrency, useTranslation } from '@/context/LocaleContext';
 import { localizeCategory, localizeDuration, localizePlanType, localizeProduct } from '@/i18n/catalog';
 import { type ProductWithVariants } from '@/lib/catalog';
 import { getProductImageUrl } from '@/lib/product-media';
+import ProductMediaGallery from '@/components/store/ProductMediaGallery';
 
 function uniq(values: (string | null)[]): string[] {
   return Array.from(new Set(values.filter((v): v is string => !!v)));
@@ -107,20 +108,12 @@ export default function ProductDetail({ product: rawProduct }: { product: Produc
     <>
     <div className="grid grid-cols-1 gap-10 pb-28 lg:grid-cols-2 lg:pb-0">
       {/* Visual */}
-      <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-best-border bg-gradient-to-br from-best-purple/25 via-best-surface to-best-cyan/10">
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={imageUrl}
-            alt={product.name}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span className="font-display px-8 text-center text-4xl font-black uppercase tracking-tight text-white">
-            {product.name}
-          </span>
-        )}
-      </div>
+      <ProductMediaGallery
+        mainImage={imageUrl}
+        galleryImages={rawProduct.gallery_images ?? []}
+        videoUrl={rawProduct.video_url ?? null}
+        productName={product.name}
+      />
 
       {/* Info + selection */}
       <div className="flex flex-col">

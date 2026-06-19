@@ -33,6 +33,8 @@ export type Product = {
   slug: string;
   description: string | null;
   base_image: string | null;
+  video_url: string | null;
+  gallery_images: string[];
   base_price: number;
   rating: number;
   review_count: number;
@@ -108,6 +110,8 @@ function fallbackProducts(): Product[] {
       slug: p.id,
       description: p.description,
       base_image: PRODUCT_IMAGES[p.id] ?? null,
+      video_url: null,
+      gallery_images: [],
       base_price: p.variants?.length
         ? Math.min(...p.variants.map((v) => v.price))
         : p.price,

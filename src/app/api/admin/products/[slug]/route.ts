@@ -63,6 +63,8 @@ export async function PATCH(request: Request, { params }: Params) {
     'name',
     'description',
     'base_image',
+    'video_url',
+    'gallery_images',
     'base_price',
     'popularity',
     'is_featured',
