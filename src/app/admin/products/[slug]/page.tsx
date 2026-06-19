@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { Trash2, ArrowLeft, Plus } from 'lucide-react';
+import ProductDetail from '@/components/store/ProductDetail';
 import { adminFetch } from '@/lib/admin-fetch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,6 @@ import {
 } from '@/components/ui/select';
 import ImageUploadField from '@/components/admin/ImageUploadField';
 import VideoUploadField from '@/components/admin/VideoUploadField';
-import ProductDetail from '@/components/store/ProductDetail';
 
 type Variant = {
   id?: string;
@@ -43,8 +43,6 @@ type Product = {
   popularity: number;
   is_featured: boolean;
   category_id: string;
-  name_translations?: Record<string, string> | null;
-  description_translations?: Record<string, string> | null;
 };
 
 type Category = { id: string; name: string; slug: string };
@@ -386,240 +384,34 @@ export default function AdminProductEditPage() {
                   </Button>
                 </div>
               )
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <div>
-              <Label>Name (English)</Label>
-              <Input
-                value={product.name ?? ''}
-                onChange={(e) => setProduct({ ...product, name: e.target.value })}
-                className="mt-1 bg-best-bg"
-              />
-            </div>
-
-            <div>
-              <Label>Name (Kurdish)</Label>
-              <Input
-                value={product.name_translations?.ku ?? ''}
-                onChange={(e) =>
-                  setProduct({
-                    ...product,
-                    name_translations: { ...product.name_translations, ku: e.target.value },
-                  })
-                }
-                className="mt-1 bg-best-bg"
-              />
-            </div>
-
-            <div>
-              <Label>Name (Arabic)</Label>
-              <Input
-                value={product.name_translations?.ar ?? ''}
-                onChange={(e) =>
-                  setProduct({
-                    ...product,
-                    name_translations: { ...product.name_translations, ar: e.target.value },
-                  })
-                }
-                className="mt-1 bg-best-bg"
-              />
-            </div>
-
-            <div>
-              <Label>Slug</Label>
-              <Input
-                value={product.slug}
-                onChange={(e) => setProduct({ ...product, slug: e.target.value })}
-                className="mt-1 bg-best-bg"
-              />
-              <p className="mt-1 text-xs text-best-caption">Changing slug updates the product URL.</p>
-            </div>
-
-            <div>
-              <Label>Category</Label>
-              <Select
-                value={product.category_id}
-                onValueChange={(v) => setProduct({ ...product, category_id: v })}
-              >
-                <SelectTrigger className="mt-1 bg-best-bg">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Description (English)</Label>
-              <Textarea
-                value={product.description ?? ''}
-                onChange={(e) => setProduct({ ...product, description: e.target.value })}
-                className="mt-1 bg-best-bg"
-              />
-            </div>
-
-            <div>
-              <Label>Description (Kurdish)</Label>
-              <Textarea
-                value={product.description_translations?.ku ?? ''}
-                onChange={(e) =>
-                  setProduct({
-                    ...product,
-                    description_translations: { ...product.description_translations, ku: e.target.value },
-                  })
-                }
-                className="mt-1 bg-best-bg"
-              />
-            </div>
-
-            <div>
-              <Label>Description (Arabic)</Label>
-              <Textarea
-                value={product.description_translations?.ar ?? ''}
-                onChange={(e) =>
-                  setProduct({
-                    ...product,
-                    description_translations: { ...product.description_translations, ar: e.target.value },
-                  })
-                }
-                className="mt-1 bg-best-bg"
-              />
-            </div>
-
-            <div>
-              <Label>Base price (IQD)</Label>
-              <Input
-                type="number"
-                value={product.base_price}
-                onChange={(e) => setProduct({ ...product, base_price: Number(e.target.value) })}
-                className="mt-1 bg-best-bg"
-              />
-            </div>
-
-            <div>
-              <Label>Popularity (sort)</Label>
-              <Input
-                type="number"
-                value={product.popularity}
-                onChange={(e) => setProduct({ ...product, popularity: Number(e.target.value) })}
-                className="mt-1 bg-best-bg"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={product.is_featured}
-                onCheckedChange={(v) => setProduct({ ...product, is_featured: v })}
-              />
-              <Label>Featured</Label>
-            </div>
-
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <Label>Variants</Label>
-                <Button type="button" size="sm" variant="outline" onClick={addVariant}>
-                  <Plus className="mr-1 h-4 w-4" /> Add
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {variants.map((v, i) =>
-                  v._delete ? null : (
-                    <div key={v.id ?? `new-${i}`} className="rounded-lg border border-best-border p-3 text-sm">
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <Input
-                          value={v.plan_type ?? ''}
-                          onChange={(e) => {
-                            const next = [...variants];
-                            next[i] = { ...v, plan_type: e.target.value || null };
-                            setVariants(next);
-                          }}
-                          className="bg-best-bg"
-                          placeholder="Plan type"
-                        />
-                        <Input
-                          value={v.duration ?? ''}
-                          onChange={(e) => {
-                            const next = [...variants];
-                            next[i] = { ...v, duration: e.target.value || null };
-                            setVariants(next);
-                          }}
-                          className="bg-best-bg"
-                          placeholder="Duration"
-                        />
-                        <Input
-                          type="number"
-                          value={v.price}
-                          onChange={(e) => {
-                            const next = [...variants];
-                            next[i] = { ...v, price: Number(e.target.value) };
-                            setVariants(next);
-                          }}
-                          className="bg-best-bg"
-                          placeholder="Price"
-                        />
-                        <Input
-                          type="number"
-                          value={v.stock}
-                          onChange={(e) => {
-                            const next = [...variants];
-                            next[i] = { ...v, stock: Number(e.target.value) };
-                            setVariants(next);
-                          }}
-                          className="bg-best-bg"
-                          placeholder="Stock"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="mt-2 text-red-400 hover:text-red-300"
-                        onClick={() => {
-                          const next = [...variants];
-                          if (v.id) next[i] = { ...v, _delete: true };
-                          else next.splice(i, 1);
-                          setVariants(next);
-                        }}
-                      >
-                        <Trash2 className="mr-1 h-4 w-4" /> Remove
-                      </Button>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button onClick={save} disabled={saving} className="min-h-11 flex-1">
-                {saving ? 'Saving…' : 'Save product'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={remove}
-                className="min-h-11 border-red-500/40 text-red-400 hover:bg-red-500/10"
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </Button>
-            </div>
+            )}
           </div>
-          <div className="hidden lg:block sticky top-24 pointer-events-none">
-            <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-best-muted">Live Preview</h3>
-            <div className="scale-[0.8] origin-top rounded-3xl border-8 border-best-border/30 bg-best-bg shadow-2xl overflow-hidden pointer-events-auto">
-              <div className="h-[800px] overflow-y-auto overflow-x-hidden">
-                <ProductDetail
-                  product={{
-                    ...product,
-                    variants: variants as any,
-                    category: categories.find((c) => c.id === product.category_id) ?? null,
-                  }}
-                />
-              </div>
-            </div>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button onClick={save} disabled={saving} className="min-h-11 flex-1">
+            {saving ? 'Saving…' : 'Save product'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={remove}
+            className="min-h-11 border-red-500/40 text-red-400 hover:bg-red-500/10"
+          >
+            <Trash2 className="mr-2 h-4 w-4" /> Delete
+          </Button>
+        </div>
+      </div>
+      <div className="hidden lg:block sticky top-24 pointer-events-none">
+        <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-best-muted">Live Preview</h3>
+        <div className="scale-[0.8] origin-top rounded-3xl border-8 border-best-border/30 bg-best-bg shadow-2xl overflow-hidden pointer-events-auto">
+          <div className="h-[800px] overflow-y-auto overflow-x-hidden">
+            <ProductDetail
+              product={{
+                ...product,
+                variants: variants as any,
+                category: categories.find((c) => c.id === product.category_id) ?? null,
+              }}
+            />
           </div>
         </div>
       </div>
