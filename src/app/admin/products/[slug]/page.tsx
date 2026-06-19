@@ -400,6 +400,7 @@ export default function AdminProductEditPage() {
             <Trash2 className="mr-2 h-4 w-4" /> Delete
           </Button>
         </div>
+        </div>
       </div>
       <div className="hidden lg:block sticky top-24 pointer-events-none">
         <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-best-muted">Live Preview</h3>
