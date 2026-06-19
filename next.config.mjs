@@ -27,7 +27,7 @@ const securityHeaders = [
       `img-src 'self' data: blob: https:${
         adsenseEnabled ? ' https://pagead2.googlesyndication.com' : ''
       }`,
-      `frame-src 'self'${
+      `frame-src 'self' https://www.youtube.com https://player.vimeo.com${
         adsenseEnabled
           ? ' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com'
           : ''

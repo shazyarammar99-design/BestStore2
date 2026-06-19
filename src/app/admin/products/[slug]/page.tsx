@@ -145,43 +145,64 @@ export default function AdminProductEditPage() {
           onChange={(url) => setProduct({ ...product, video_url: url || null })}
         />
 
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <Label>Gallery images</Label>
-            <ImageUploadField
-              label=""
-              value=""
-              onChange={(url) => {
-                if (!url) return;
-                setProduct({
-                  ...product,
-                  gallery_images: [...(product.gallery_images ?? []), url],
-                });
-              }}
-              folder="products"
-            />
-          </div>
-          {(product.gallery_images ?? []).length > 0 && (
-            <div className="grid grid-cols-3 gap-2">
-              {(product.gallery_images ?? []).map((img, i) => (
-                <div key={`gallery-${i}`} className="group relative overflow-hidden rounded-lg border border-best-border">
-                  <img src={img} alt={`Gallery ${i + 1}`} className="aspect-square w-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => {
+        <div className="space-y-3">
+          <Label>Gallery images</Label>
+          <div className="flex max-h-[400px] flex-col gap-3 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-best-border">
+            {(product.gallery_images ?? []).map((img, i) => (
+              <div key={`gallery-${i}`} className="flex items-start gap-3 rounded-lg border border-best-border bg-best-bg p-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-best-elevated text-xs font-bold text-best-muted">
+                  {i + 1}
+                </span>
+                <div className="flex-1">
+                  <ImageUploadField
+                    label=""
+                    value={img}
+                    onChange={(url) => {
                       const next = [...(product.gallery_images ?? [])];
-                      next.splice(i, 1);
-                      setProduct({ ...product, gallery_images: next });
+                      if (url) {
+                        next[i] = url;
+                        setProduct({ ...product, gallery_images: next });
+                      }
                     }}
-                    className="absolute end-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500/80 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
+                    folder="products"
+                  />
                 </div>
-              ))}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const next = [...(product.gallery_images ?? [])];
+                    next.splice(i, 1);
+                    setProduct({ ...product, gallery_images: next });
+                  }}
+                  className="mt-[34px] shrink-0 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            
+            <div className="flex items-start gap-3 rounded-lg border border-dashed border-best-border bg-best-bg/50 p-3 opacity-70 transition-opacity hover:opacity-100">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-best-elevated text-xs font-bold text-best-muted">
+                {(product.gallery_images ?? []).length + 1}
+              </span>
+              <div className="flex-1">
+                <ImageUploadField
+                  label=""
+                  value=""
+                  onChange={(url) => {
+                    if (!url) return;
+                    setProduct({
+                      ...product,
+                      gallery_images: [...(product.gallery_images ?? []), url],
+                    });
+                  }}
+                  folder="products"
+                />
+              </div>
             </div>
-          )}
-          <p className="mt-1 text-xs text-best-caption">Upload additional product screenshots. These appear in the product gallery.</p>
+          </div>
+          <p className="text-xs text-best-caption">Upload additional product screenshots. These appear in the product gallery.</p>
         </div>
 
         <div>
