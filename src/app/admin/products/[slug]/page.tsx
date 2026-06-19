@@ -412,7 +412,7 @@ export default function AdminProductEditPage() {
               product={{
                 ...product,
                 variants: variants as any,
-                category: categories.find((c) => c.id === product.category_id) ?? null,
+                category: (categories.find((c) => c.id === product.category_id) as any) ?? null,
               }}
             />
           </div>
