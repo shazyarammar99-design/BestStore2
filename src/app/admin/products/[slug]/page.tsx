@@ -413,7 +413,7 @@ export default function AdminProductEditPage() {
                 ...product,
                 variants: variants as any,
                 category: (categories.find((c) => c.id === product.category_id) as any) ?? null,
-              }}
+              } as any}
             />
           </div>
         </div>
