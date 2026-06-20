@@ -70,7 +70,7 @@ export default function CategoriesGrid() {
           subtitle={t('sections.browseAll')}
         />
 
-        <div ref={gridRef} className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div ref={gridRef} className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {CATEGORIES.map((raw) => {
             const category = localizeCategory({ ...raw, slug: raw.id }, locale);
             const Icon = ICON_MAP[category.id] || Coins;

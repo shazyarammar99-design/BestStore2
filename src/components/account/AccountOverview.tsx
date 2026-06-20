@@ -54,7 +54,7 @@ export default function AccountOverview() {
           <p className="font-heading text-xs font-bold uppercase tracking-[0.25em] text-best-cyan">
             {t('account.eyebrow')}
           </p>
-          <h1 className="mt-2 font-display text-4xl font-black uppercase tracking-tight text-white">
+          <h1 className="mt-2 font-display text-2xl font-black uppercase tracking-tight text-white sm:text-3xl md:text-4xl">
             {t('account.overviewTitle')}
           </h1>
           <p className="mt-2 text-best-muted">

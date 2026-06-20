@@ -11,12 +11,12 @@ export default function CategoryShowcase({ categories }: { categories: Category[
 
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
         {topRow.map((category) => (
           <CategoryCard key={category.id} category={category} variant="vertical" />
         ))}
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-2">
         {bottomRow.map((category) => (
           <CategoryCard key={category.id} category={category} variant="horizontal" />
         ))}

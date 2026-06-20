@@ -75,7 +75,7 @@ export default function CartCheckoutPage({
       <div className="relative mx-auto max-w-6xl">
         <div className="flex flex-col gap-6 border-b border-best-border pb-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display text-4xl font-black uppercase tracking-tight text-white">
+            <h1 className="font-display text-2xl font-black uppercase tracking-tight text-white sm:text-3xl md:text-4xl">
               {t('checkout.title')}
             </h1>
             <div className="mt-4">

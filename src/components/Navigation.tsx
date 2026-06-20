@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ShoppingBag, Menu, X, LogIn } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { ShoppingBag, Menu, X, LogIn, Search, ArrowLeft } from 'lucide-react';
 import LogoBrand from '@/components/LogoBrand';
 import CurrencySelect from '@/components/CurrencySelect';
 import LanguageSelect from '@/components/LanguageSelect';
@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Navigation() {
   const router = useRouter();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { itemCount } = useStore();
@@ -71,7 +72,18 @@ export default function Navigation() {
         }`}
       >
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-6">
-          <LogoBrand />
+          <div className="flex items-center gap-4">
+            {pathname !== '/' && (
+              <button
+                onClick={() => router.back()}
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-best-border bg-best-elevated/50 text-best-muted transition-colors hover:border-best-cyan hover:text-best-cyan"
+                aria-label={t('nav.back') || 'Go Back'}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            )}
+            <LogoBrand />
+          </div>
 
           <nav className="hidden items-center gap-8 lg:flex">
             <NavMegaMenuDesktop
