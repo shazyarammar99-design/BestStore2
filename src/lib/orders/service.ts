@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getProductBySlug } from '@/lib/catalog';
+import { getProductById } from '@/lib/catalog';
 import { notifyDiscordNewOrder } from '@/lib/discord/orders';
 import { sendAdminOrderEmail } from '@/lib/email/orders';
 import { consumeInventoryReward, resolveOrderDiscount } from '@/lib/orders/discount';
@@ -18,7 +18,7 @@ export async function buildOrderSnapshots(
   const snapshots: OrderItemSnapshot[] = [];
 
   for (const item of items) {
-    const product = await getProductBySlug(item.productId);
+    const product = await getProductById(item.productId);
     if (!product) return { error: `Unknown product: ${item.productId}` };
 
     let unitPrice = product.base_price;
