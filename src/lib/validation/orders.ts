@@ -7,6 +7,7 @@ export const createOrderSchema = z.object({
   delivery: z.record(z.string(), z.string()).optional(),
   sellerNotes: z.string().max(2000).optional(),
   promoCode: z.string().max(64).optional(),
+  inventoryId: z.string().uuid().optional(),
 });
 
 export type CreateOrderRequest = z.infer<typeof createOrderSchema>;

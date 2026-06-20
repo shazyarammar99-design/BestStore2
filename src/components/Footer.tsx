@@ -12,13 +12,11 @@ import {
 } from 'lucide-react';
 import { CATEGORIES } from '@/data';
 import { type PaymentMethod } from '@/lib/payment-methods';
+import { SUPPORT_DISCORD_URL, SUPPORT_EMAIL } from '@/config/contact';
 import { useTranslation } from '@/context/LocaleContext';
 import { useAuth } from '@/context/AuthContext';
 import { localizeCategory } from '@/i18n/catalog';
 import { transliterateBest } from '@/i18n/transliterate';
-
-const WHATSAPP_URL = 'https://wa.me/9647503220525';
-const DISCORD_URL = 'https://discord.gg/SMw5HBnmMc';
 
 const PAYMENT_ICONS: Record<string, LucideIcon> = {
   CreditCard,
@@ -71,17 +69,7 @@ export default function Footer() {
             <ul className="mt-4 space-y-2">
               <li>
                 <a
-                  href={WHATSAPP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-best-muted transition-colors hover:text-best-cyan"
-                >
-                  {t('footer.whatsapp')}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={DISCORD_URL}
+                  href={SUPPORT_DISCORD_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-best-muted transition-colors hover:text-best-cyan"
@@ -89,6 +77,16 @@ export default function Footer() {
                   {t('footer.discord')}
                 </a>
               </li>
+              {SUPPORT_EMAIL && (
+                <li>
+                  <a
+                    href={`mailto:${SUPPORT_EMAIL}`}
+                    className="text-sm text-best-muted transition-colors hover:text-best-cyan"
+                  >
+                    {t('footer.email')}
+                  </a>
+                </li>
+              )}
               <li>
                 <Link
                   href="/#faq"

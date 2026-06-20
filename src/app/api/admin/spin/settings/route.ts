@@ -27,6 +27,7 @@ export async function PATCH(request: Request) {
   const extraTurns = Number(body.extraTurns);
   const spinDurationMs = Number(body.spinDurationMs);
   const minPurchaseIqd = Number(body.minPurchaseIqd);
+  const testMode = body.testMode === true;
 
   if (!Number.isFinite(extraTurns) || extraTurns < 1 || extraTurns > 20) {
     return NextResponse.json({ error: 'extraTurns must be between 1 and 20' }, { status: 400 });
@@ -38,7 +39,20 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'minPurchaseIqd must be a positive number' }, { status: 400 });
   }
 
-  const value = { extraTurns, spinDurationMs, minPurchaseIqd };
+  const { data: existing } = await auth.ctx.admin
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'spin')
+    .maybeSingle();
+
+  const value = {
+    ...DEFAULT_SPIN_SETTINGS,
+    ...(existing?.value as object),
+    extraTurns,
+    spinDurationMs,
+    minPurchaseIqd,
+    testMode,
+  };
 
   const { data, error } = await auth.ctx.admin
     .from('site_settings')

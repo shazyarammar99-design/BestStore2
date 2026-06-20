@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useFormatCurrency, useTranslation } from '@/context/LocaleContext';
 import { useStore } from '@/context/StoreContext';
 import { calculateCheckoutPricing } from '@/lib/checkout-pricing';
+import type { SpinRewardSelection } from '@/lib/checkout-pricing';
 import { type PaymentMethod } from '@/lib/payment-methods';
 
 function CheckoutSteps() {
@@ -45,10 +46,11 @@ export default function CartCheckoutPage({
   const [deliveryValues, setDeliveryValues] = useState<Record<string, string>>({});
   const [sellerNotes, setSellerNotes] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [appliedReward, setAppliedReward] = useState<SpinRewardSelection | null>(null);
 
   const pricing = useMemo(
-    () => calculateCheckoutPricing(totalPrice, appliedPromo),
-    [totalPrice, appliedPromo]
+    () => calculateCheckoutPricing(totalPrice, appliedPromo, appliedReward),
+    [totalPrice, appliedPromo, appliedReward]
   );
 
   const handler = useCheckoutHandler({
@@ -73,7 +75,7 @@ export default function CartCheckoutPage({
       <div className="relative mx-auto max-w-6xl">
         <div className="flex flex-col gap-6 border-b border-best-border pb-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display text-4xl font-black uppercase tracking-tight text-white">
+            <h1 className="font-display text-2xl font-black uppercase tracking-tight text-white sm:text-3xl md:text-4xl">
               {t('checkout.title')}
             </h1>
             <div className="mt-4">
@@ -127,6 +129,8 @@ export default function CartCheckoutPage({
                   onSellerNotesChange={setSellerNotes}
                   appliedPromo={appliedPromo}
                   onApplyPromo={setAppliedPromo}
+                  appliedReward={appliedReward}
+                  onApplyReward={setAppliedReward}
                   updateQuantity={updateQuantity}
                   removeItem={removeItem}
                 />

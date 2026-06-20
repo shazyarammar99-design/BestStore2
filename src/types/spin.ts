@@ -1,3 +1,5 @@
+import type { RefObject } from 'react';
+
 export type Prize = {
   id: string;
   name: string;
@@ -5,6 +7,22 @@ export type Prize = {
   image_url: string | null;
   value: number;
   active: boolean;
+  prize_type?: import('@/lib/spin/prize-effects').PrizeType;
+};
+
+export type InventoryPrize = {
+  id: string;
+  name: string;
+  prize_type: import('@/lib/spin/prize-effects').PrizeType;
+  value: number;
+  image_url: string | null;
+};
+
+export type InventoryItem = {
+  inventoryId: string;
+  quantity: number;
+  wonAt: string;
+  prize: InventoryPrize;
 };
 
 export type SpinResult = {
@@ -43,6 +61,7 @@ export type SpinStatus = {
   prizes: SpinPrizeRow[];
   extraTurns: number;
   spinDurationMs: number;
+  testMode: boolean;
 };
 
 export type MathChallengeResponse = {
@@ -68,6 +87,10 @@ export interface PrizeOutcome {
   prize: SpinResult['prize'];
 }
 
+export type SpinWheelCanvasHandle = {
+  getRotation: () => number;
+};
+
 export interface SpinWheelCanvasProps {
   segments: WheelSegment[];
   phase: WheelPhase;
@@ -78,4 +101,6 @@ export interface SpinWheelCanvasProps {
   spinDisabled?: boolean;
   onSpinTransitionEnd?: () => void;
   spinDurationMs?: number;
+  awaitingResult?: boolean;
+  apiRef?: RefObject<SpinWheelCanvasHandle | null>;
 }

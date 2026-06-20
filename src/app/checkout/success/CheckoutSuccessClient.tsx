@@ -4,9 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, MessageCircle } from 'lucide-react';
 import { useTranslation } from '@/context/LocaleContext';
+import { SUPPORT_DISCORD_URL } from '@/config/contact';
 import { getDiscordInviteUrl } from '@/lib/discord/orders';
-
-const WHATSAPP_URL = 'https://wa.me/9647503220525';
 
 export default function CheckoutSuccessClient() {
   const { t } = useTranslation();
@@ -62,12 +61,12 @@ export default function CheckoutSuccessClient() {
         <p className="mt-6 text-xs text-best-caption">
           {t('checkout.supportHint')}{' '}
           <a
-            href={WHATSAPP_URL}
+            href={SUPPORT_DISCORD_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-best-cyan hover:underline"
           >
-            {t('footer.whatsapp')}
+            {t('footer.discord')}
           </a>
         </p>
       </div>

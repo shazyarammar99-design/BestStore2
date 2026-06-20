@@ -2,6 +2,8 @@ export type SpinSettings = {
   extraTurns: number;
   spinDurationMs: number;
   minPurchaseIqd: number;
+  /** When true: unlimited test spins, no credits consumed, prizes not persisted. */
+  testMode: boolean;
 };
 
 export type BrandingSettings = {
@@ -23,6 +25,7 @@ export const DEFAULT_SPIN_SETTINGS: SpinSettings = {
   extraTurns: 7,
   spinDurationMs: 3000,
   minPurchaseIqd: 10_000,
+  testMode: false,
 };
 
 export const DEFAULT_BRANDING_SETTINGS: BrandingSettings = {

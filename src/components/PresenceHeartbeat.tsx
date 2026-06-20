@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 
 const STORAGE_KEY = 'best-store-session-id';
-const HEARTBEAT_MS = 30_000;
+const HEARTBEAT_MS = 90_000;
 
 function getOrCreateSessionId(): string {
   if (typeof window === 'undefined') return '';
@@ -32,8 +32,14 @@ export default function PresenceHeartbeat() {
     const sessionId = getOrCreateSessionId();
     if (!sessionId) return;
 
-    void sendHeartbeat(sessionId);
-    const id = setInterval(() => void sendHeartbeat(sessionId), HEARTBEAT_MS);
+    const tick = () => {
+      if (document.visibilityState === 'visible') {
+        void sendHeartbeat(sessionId);
+      }
+    };
+
+    tick();
+    const id = setInterval(tick, HEARTBEAT_MS);
 
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {

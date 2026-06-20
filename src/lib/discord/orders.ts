@@ -6,6 +6,9 @@ export type OrderDiscordPayload = {
   username: string;
   userEmail?: string;
   amount: number;
+  subtotal?: number;
+  discount?: number;
+  discountLabel?: string;
   paymentMethod?: string;
   itemsSummary: string;
   deliverySummary?: string;
@@ -27,6 +30,21 @@ export async function notifyDiscordNewOrder(payload: OrderDiscordPayload): Promi
     { name: 'Total', value: `${payload.amount.toLocaleString()} IQD`, inline: true },
     { name: 'Items', value: payload.itemsSummary.slice(0, 1024) },
   ];
+
+  if (payload.discount && payload.discount > 0) {
+    fields.push({
+      name: 'Discount',
+      value: `${payload.discountLabel ?? 'Applied'}: -${payload.discount.toLocaleString()} IQD`,
+      inline: true,
+    });
+  }
+  if (payload.subtotal !== undefined && payload.subtotal !== payload.amount) {
+    fields.push({
+      name: 'Subtotal',
+      value: `${payload.subtotal.toLocaleString()} IQD`,
+      inline: true,
+    });
+  }
 
   if (payload.paymentMethod) {
     fields.push({ name: 'Payment', value: payload.paymentMethod, inline: true });

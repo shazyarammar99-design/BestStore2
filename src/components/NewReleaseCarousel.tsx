@@ -89,7 +89,7 @@ export default function NewReleaseCarousel() {
 
         <Carousel
           setApi={setApi}
-          opts={{ align: 'start', loop: true }}
+          opts={{ align: 'start', loop: true, direction: 'ltr' }}
           className="relative"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => {
@@ -109,8 +109,7 @@ export default function NewReleaseCarousel() {
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 60vw"
-                        priority={index === 0}
-                        loading={index === 0 ? undefined : 'lazy'}
+                        priority
                       />
                       <div className="absolute inset-0 bg-gradient-to-r from-best-bg/20 to-transparent md:hidden" />
                     </div>
@@ -136,8 +135,8 @@ export default function NewReleaseCarousel() {
 
           {releases.length > 1 && (
             <>
-              <CarouselPrevious className="left-3 border-best-border bg-best-bg/90 text-white hover:bg-best-elevated md:-left-4" />
-              <CarouselNext className="right-3 border-best-border bg-best-bg/90 text-white hover:bg-best-elevated md:-right-4" />
+              <CarouselPrevious className="start-3 border-best-border bg-best-bg/90 text-white hover:bg-best-elevated md:-start-4" />
+              <CarouselNext className="end-3 border-best-border bg-best-bg/90 text-white hover:bg-best-elevated md:-end-4" />
               <div
                 className="mt-4 h-1 w-full overflow-hidden rounded-full bg-best-border/60"
                 aria-hidden="true"

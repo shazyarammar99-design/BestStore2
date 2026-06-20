@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { SPIN_TEST_MODE } from '@/config/spin';
 import { SPIN_ODDS_META } from '@/config/spin-prizes';
 import { verifyMathChallenge } from '@/lib/captcha';
 import { rateLimit } from '@/lib/rate-limit';
@@ -62,19 +61,20 @@ function buildSpinStatusPayload(
     winPercent: number;
   }>,
   loggedIn: boolean,
-  spinSettings: { extraTurns: number; spinDurationMs: number; minPurchaseIqd: number }
+  spinSettings: { extraTurns: number; spinDurationMs: number; minPurchaseIqd: number; testMode: boolean }
 ) {
-  const canUseSpinToday = SPIN_TEST_MODE
+  const testMode = spinSettings.testMode === true;
+  const canUseSpinToday = testMode
     ? loggedIn
     : loggedIn && spinCredits > 0 && !spunToday;
 
   return {
     canSpinToday: canUseSpinToday,
-    nextSpinAt: SPIN_TEST_MODE ? null : spunToday && loggedIn ? utcMidnightTomorrow() : null,
-    spinCredits: SPIN_TEST_MODE ? 1 : spinCredits,
-    requiresPurchase: SPIN_TEST_MODE ? false : loggedIn && spinCredits === 0,
+    nextSpinAt: testMode ? null : spunToday && loggedIn ? utcMidnightTomorrow() : null,
+    spinCredits: testMode ? 1 : spinCredits,
+    requiresPurchase: testMode ? false : loggedIn && spinCredits === 0,
     minPurchaseIqd: spinSettings.minPurchaseIqd,
-    nextFreeSpinAt: SPIN_TEST_MODE ? null : loggedIn ? nextFreeSpinAt : null,
+    nextFreeSpinAt: testMode ? null : loggedIn ? nextFreeSpinAt : null,
     monthlySpinGranted,
     oddsMeta: {
       lastUpdated: SPIN_ODDS_META.lastUpdated,
@@ -83,6 +83,7 @@ function buildSpinStatusPayload(
     prizes,
     extraTurns: spinSettings.extraTurns,
     spinDurationMs: spinSettings.spinDurationMs,
+    testMode,
   };
 }
 
@@ -97,20 +98,23 @@ async function loadSpinSettings(admin: NonNullable<ReturnType<typeof createAdmin
 }
 
 export async function GET(request: Request) {
-  const user = await getAuthenticatedUser(request);
-
   const admin = createAdminClient();
   if (!admin) {
     return NextResponse.json({ error: 'Spin service not configured.' }, { status: 503 });
   }
 
-  const { data: prizes } = await admin
-    .from('prizes')
-    .select('id, name, image_url, value, probability_weight, created_at')
-    .eq('active', true)
-    .order('probability_weight', { ascending: false });
+  // Fetch the user and global static data in parallel to save time
+  const [user, prizesResult, spinSettings] = await Promise.all([
+    getAuthenticatedUser(request),
+    admin
+      .from('prizes')
+      .select('id, name, image_url, value, probability_weight, created_at')
+      .eq('active', true)
+      .order('probability_weight', { ascending: false }),
+    loadSpinSettings(admin)
+  ]);
 
-  const rows = prizes ?? [];
+  const rows = prizesResult.data ?? [];
   const totalWeight = rows.reduce((sum, p) => sum + p.probability_weight, 0);
   const prizeRows = rows.map((p) => ({
     id: p.id,
@@ -124,27 +128,28 @@ export async function GET(request: Request) {
         : 0,
   }));
 
-  const spinSettings = await loadSpinSettings(admin);
-
   if (!user) {
     return NextResponse.json(
       buildSpinStatusPayload(0, false, null, 0, prizeRows, false, spinSettings)
     );
   }
 
-  const monthly = await syncMonthlyFreeSpins(admin, user.id);
+  // Fetch user-specific spin data in parallel
+  const [monthly, { data: existing }] = await Promise.all([
+    syncMonthlyFreeSpins(admin, user.id),
+    admin
+      .from('spins')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('spin_date', utcToday())
+      .maybeSingle()
+  ]);
+
   if ('error' in monthly) {
     return NextResponse.json({ error: monthly.error }, { status: 500 });
   }
 
   const spinCredits = monthly.spinCredits;
-
-  const { data: existing } = await admin
-    .from('spins')
-    .select('id')
-    .eq('user_id', user.id)
-    .eq('spin_date', utcToday())
-    .maybeSingle();
 
   return NextResponse.json(
     buildSpinStatusPayload(
@@ -190,6 +195,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Spin service not configured.' }, { status: 503 });
   }
 
+  // Rate limiting first
   const limit = await rateLimit(`spin:${user.id}`);
   if (!limit.allowed) {
     return NextResponse.json(
@@ -198,15 +204,27 @@ export async function POST(request: Request) {
     );
   }
 
-  const monthly = await syncMonthlyFreeSpins(admin, user.id);
+  // Load spin credits, settings, and existing spin status in parallel
+  const today = utcToday();
+  const [monthly, spinSettings, { data: existingSpin }] = await Promise.all([
+    syncMonthlyFreeSpins(admin, user.id),
+    loadSpinSettings(admin),
+    admin
+      .from('spins')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('spin_date', today)
+      .maybeSingle()
+  ]);
+
   if ('error' in monthly) {
     return NextResponse.json({ error: monthly.error }, { status: 500 });
   }
 
   const spinCredits = monthly.spinCredits;
-  const spinSettings = await loadSpinSettings(admin);
+  const testMode = spinSettings.testMode === true;
 
-  if (!SPIN_TEST_MODE && spinCredits <= 0) {
+  if (!testMode && spinCredits <= 0) {
     return NextResponse.json(
       {
         error: `Purchase at least ${spinSettings.minPurchaseIqd.toLocaleString()} IQD to unlock spins.`,
@@ -215,19 +233,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const today = utcToday();
-
-  if (!SPIN_TEST_MODE) {
-    const { data: existingSpin } = await admin
-      .from('spins')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('spin_date', today)
-      .maybeSingle();
-
-    if (existingSpin) {
-      return NextResponse.json({ error: 'You have already spun today. Come back tomorrow!' }, { status: 409 });
-    }
+  if (!testMode && existingSpin) {
+    return NextResponse.json({ error: 'You have already spun today. Come back tomorrow!' }, { status: 409 });
   }
 
   const result = await pickSpinResult(admin);
@@ -235,7 +242,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No prizes available.' }, { status: 503 });
   }
 
-  if (!SPIN_TEST_MODE) {
+  if (!testMode) {
     const { error: spinError } = await admin.from('spins').insert({
       user_id: user.id,
       spin_date: today,
@@ -254,35 +261,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: consumed.error }, { status: 500 });
     }
 
-    const timerReset = await resetMonthlySpinTimerOnSpin(
-      admin,
-      user.id,
-      consumed.monthlySpinPending
-    );
-    if ('error' in timerReset) {
-      return NextResponse.json({ error: timerReset.error }, { status: 500 });
-    }
-
-    const { data: invRow } = await admin
+    // Fire off async operations concurrently that don't block the response critical path
+    const timerResetPromise = resetMonthlySpinTimerOnSpin(admin, user.id, consumed.monthlySpinPending);
+    const inventoryPromise = admin
       .from('inventory')
       .select('quantity')
       .eq('user_id', user.id)
       .eq('prize_id', result.won.id)
-      .maybeSingle();
-
-    if (invRow) {
-      await admin
-        .from('inventory')
-        .update({ quantity: invRow.quantity + 1, won_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .eq('prize_id', result.won.id);
-    } else {
-      await admin.from('inventory').insert({
-        user_id: user.id,
-        prize_id: result.won.id,
-        quantity: 1,
+      .maybeSingle()
+      .then(async ({ data: invRow }) => {
+        if (invRow) {
+          await admin
+            .from('inventory')
+            .update({ quantity: invRow.quantity + 1, won_at: new Date().toISOString() })
+            .eq('user_id', user.id)
+            .eq('prize_id', result.won.id);
+        } else {
+          await admin.from('inventory').insert({
+            user_id: user.id,
+            prize_id: result.won.id,
+            quantity: 1,
+          });
+        }
       });
-    }
+
+    await Promise.all([timerResetPromise, inventoryPromise]);
 
     return NextResponse.json({
       prize: result.prize,

@@ -49,12 +49,12 @@ export default function ProductCard({ product: rawProduct }: { product: Product 
     <>
       <Card className="flex flex-col border-best-border bg-best-elevated transition-all duration-300 hover:-translate-y-1 hover:border-best-cyan/60 hover:shadow-cyan-glow">
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-2">
-            <CardTitle className="font-heading text-lg font-bold text-white">
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between">
+            <CardTitle className="font-heading text-base font-bold text-white sm:text-lg">
               {product.name}
             </CardTitle>
             {category && (
-              <Badge variant="outline" className="shrink-0 border-best-purple/40 text-best-purple">
+              <Badge variant="outline" className="shrink-0 border-best-purple/40 text-[10px] sm:text-xs text-best-purple">
                 {category.tag}
               </Badge>
             )}
@@ -72,13 +72,13 @@ export default function ProductCard({ product: rawProduct }: { product: Product 
           </p>
         </CardContent>
         <CardFooter className="border-t border-best-border pt-4">
-          <div className="flex w-full items-center justify-between">
-            <span className="font-display text-lg font-bold tracking-tight text-best-gold">
+          <div className="flex w-full flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="font-display text-base font-bold tracking-tight text-best-gold sm:text-lg">
               {displayPrice}
             </span>
             <button
               onClick={handleClick}
-              className="rounded-lg bg-best-cyan/10 px-4 py-2 font-heading text-xs font-bold uppercase tracking-widest text-best-cyan transition-all duration-200 hover:bg-best-cyan hover:text-best-bg hover:shadow-cyan-glow"
+              className="min-h-11 w-full rounded-lg bg-best-cyan/10 px-4 py-2 font-heading text-[10px] font-bold uppercase tracking-widest text-best-cyan transition-all duration-200 hover:bg-best-cyan hover:text-best-bg hover:shadow-cyan-glow sm:w-auto sm:text-xs"
             >
               {hasVariants ? t('product.selectPlan') : t('product.addToCart')}
             </button>

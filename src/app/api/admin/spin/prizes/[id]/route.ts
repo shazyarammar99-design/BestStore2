@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/admin/require-admin';
 
+import { PRIZE_TYPES, type PrizeType } from '@/lib/spin/prize-effects';
+
+function parsePrizeType(raw: unknown): PrizeType | null {
+  const t = String(raw ?? '');
+  if (!t) return null;
+  return PRIZE_TYPES.some((p) => p.value === t) ? (t as PrizeType) : null;
+}
+
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
@@ -27,6 +35,13 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (body.value !== undefined) updates.value = Number(body.value);
   if (body.image_url !== undefined) updates.image_url = body.image_url || null;
   if (body.active !== undefined) updates.active = Boolean(body.active);
+  if (body.prize_type !== undefined) {
+    const prize_type = parsePrizeType(body.prize_type);
+    if (!prize_type) {
+      return NextResponse.json({ error: 'Invalid prize type' }, { status: 400 });
+    }
+    updates.prize_type = prize_type;
+  }
 
   if (!Object.keys(updates).length) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 });

@@ -89,7 +89,7 @@ export default function CategoryCard({
             {category.tag}
           </span>
         )}
-        <h3 className="font-display mt-3 text-xl font-bold uppercase tracking-tight text-white lg:text-2xl">
+        <h3 className="font-display mt-3 text-base font-bold uppercase tracking-tight text-white sm:text-xl lg:text-2xl">
           {category.name}
         </h3>
         {category.description && (

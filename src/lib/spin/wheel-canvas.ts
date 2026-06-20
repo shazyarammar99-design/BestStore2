@@ -276,6 +276,25 @@ export function computeIdleRotation(
   return startRotation + (elapsedMs / IDLE_MS_PER_REV) * 360;
 }
 
+/** Degrees per ms while waiting for the spin API (steady spin, no early stop). */
+export const PENDING_SPIN_DEG_PER_MS = 0.42;
+
+export function computePendingSpinRotation(startRotation: number, elapsedMs: number): number {
+  return startRotation + elapsedMs * PENDING_SPIN_DEG_PER_MS;
+}
+
+/** Match easeCasinoSpin start speed to pending spin so landing does not jerk. */
+export function computeSeamlessLandingDuration(
+  distanceDeg: number,
+  reducedMotion = false,
+  fallbackMs = SPIN_DURATION_MS
+): number {
+  if (reducedMotion) return SPIN_DURATION_REDUCED_MS;
+  const distance = Math.max(distanceDeg, 360);
+  const matched = (2 * distance) / PENDING_SPIN_DEG_PER_MS;
+  return Math.round(Math.min(8000, Math.max(fallbackMs, matched)));
+}
+
 export function computeSpinRotation(
   startRotation: number,
   targetRotation: number,

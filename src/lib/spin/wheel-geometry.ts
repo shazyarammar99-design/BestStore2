@@ -71,7 +71,7 @@ export function randomLandingOffsetInSegment(segmentDeg: number): number {
   return min + Math.random() * (max - min);
 }
 
-/** Land a random spot inside the winning segment under the top pointer. */
+/** Land on segmentIndex with at least extraTurns full revolutions ahead of currentRotation. */
 export function computeSpinTargetRotation(
   currentRotation: number,
   segmentIndex: number,
@@ -80,9 +80,15 @@ export function computeSpinTargetRotation(
 ): number {
   const segmentDeg = 360 / segmentCount;
   const landingOffset = randomLandingOffsetInSegment(segmentDeg);
-  const targetAngle = 360 - (segmentIndex * segmentDeg + segmentDeg / 2 + landingOffset);
-  const extra = extraTurns * 360;
-  return currentRotation + extra + targetAngle - (currentRotation % 360);
+  const desiredNorm =
+    ((360 - (segmentIndex * segmentDeg + segmentDeg / 2 + landingOffset)) % 360 + 360) % 360;
+  const currentNorm = ((currentRotation % 360) + 360) % 360;
+
+  let delta = desiredNorm - currentNorm;
+  if (delta <= 0) delta += 360;
+  delta += extraTurns * 360;
+
+  return currentRotation + delta;
 }
 
 export const CELEBRATION_RESUME_MS = 4500;

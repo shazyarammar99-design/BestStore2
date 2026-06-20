@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { getProductBySlug } from '@/lib/catalog';
 import { notifyDiscordNewOrder } from '@/lib/discord/orders';
 import { sendAdminOrderEmail } from '@/lib/email/orders';
+import { consumeInventoryReward, resolveOrderDiscount } from '@/lib/orders/discount';
 import { pointsFromAmount } from '@/lib/purchases/resolve';
 import { grantSpinCreditForPurchase } from '@/lib/spin/credits';
 import type { OrderItemSnapshot, OrderStatus } from '@/types/orders';
@@ -55,7 +56,16 @@ export async function createOrder(
   const built = await buildOrderSnapshots(input.items);
   if ('error' in built) return { error: built.error };
 
-  const pointsEarned = pointsFromAmount(built.amount);
+  const pricing = await resolveOrderDiscount(
+    admin,
+    userId,
+    built.amount,
+    input.promoCode,
+    input.inventoryId
+  );
+  if (!pricing.ok) return { error: pricing.error };
+
+  const pointsEarned = pointsFromAmount(pricing.finalAmount);
   const itemsSummary = built.snapshots
     .map((i) => {
       const label = i.variantLabel ? `${i.productName} — ${i.variantLabel}` : i.productName;
@@ -74,18 +84,29 @@ export async function createOrder(
     .insert({
       user_id: userId,
       status: 'pending',
-      amount: built.amount,
+      amount: pricing.finalAmount,
+      subtotal_amount: pricing.subtotal,
+      discount_amount: pricing.discount,
+      reward_inventory_id: pricing.rewardInventoryId,
       points_earned: pointsEarned,
       payment_method_slug: input.paymentMethodSlug ?? null,
       delivery_json: deliveryJson,
       seller_notes: input.sellerNotes?.trim() || null,
-      promo_code: input.promoCode ?? null,
+      promo_code: pricing.promoCode,
       items_json: built.snapshots,
     })
     .select('*')
     .single();
 
   if (error || !order) return { error: error?.message ?? 'Failed to create order.' };
+
+  if (pricing.rewardInventoryId) {
+    const consumed = await consumeInventoryReward(admin, userId, pricing.rewardInventoryId);
+    if ('error' in consumed) {
+      await admin.from('orders').delete().eq('id', order.id);
+      return { error: consumed.error };
+    }
+  }
 
   const itemRows = built.snapshots.map((s, idx) => ({
     order_id: order.id,
@@ -105,7 +126,10 @@ export async function createOrder(
     shortId: shortOrderId(order.id),
     username,
     userEmail,
-    amount: built.amount,
+    amount: pricing.finalAmount,
+    subtotal: pricing.subtotal,
+    discount: pricing.discount,
+    discountLabel: pricing.discountLabel ?? undefined,
     paymentMethod: input.paymentMethodSlug,
     itemsSummary,
     deliverySummary: deliverySummary || undefined,

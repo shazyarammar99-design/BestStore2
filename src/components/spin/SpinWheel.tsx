@@ -6,18 +6,18 @@ import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/LocaleContext';
 import { authFetch } from '@/lib/auth-fetch';
-import { SPIN_TEST_MODE } from '@/config/spin';
 import {
   buildWheelSegments,
   CELEBRATION_RESUME_MS,
   computeSpinTargetRotation,
 } from '@/lib/spin/wheel-geometry';
+import { buildSpinChallengePayload, fetchSpinChallenge } from '@/lib/spin/challenge-client';
 import { launchWheelFireworks } from '@/lib/spin/wheel-fireworks';
 import { formatCountdown, useCountdown } from '@/hooks/useCountdown';
 import SpinResultDialog from '@/components/spin/SpinResultDialog';
 import SpinPrizeList from '@/components/spin/SpinPrizeList';
 import SpinWheelCanvas from '@/components/spin/SpinWheelCanvas';
-import type { SpinResult, SpinStatus, WheelPhase } from '@/types/spin';
+import type { SpinResult, SpinStatus, WheelPhase, MathChallengeResponse, SpinWheelCanvasHandle } from '@/types/spin';
 
 type SpinWheelProps = {
   onSpinComplete?: (result: SpinResult) => void;
@@ -36,6 +36,10 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
   const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dialogTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wheelContainerRef = useRef<HTMLDivElement>(null);
+  const wheelApiRef = useRef<SpinWheelCanvasHandle | null>(null);
+  const challengeRef = useRef<MathChallengeResponse | null>(null);
+  const spinStartRotationRef = useRef(0);
+  const [awaitingResult, setAwaitingResult] = useState(false);
 
   const spunToday = Boolean(status?.nextSpinAt);
   const dailyCountdown = useCountdown(spunToday ? status?.nextSpinAt : null);
@@ -71,6 +75,13 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
   }, [loadStatus, user]);
 
   useEffect(() => {
+    if (!user || !status?.canSpinToday || phase !== 'idle') return;
+    void fetchSpinChallenge().then((challenge) => {
+      if (challenge) challengeRef.current = challenge;
+    });
+  }, [user, status?.canSpinToday, phase]);
+
+  useEffect(() => {
     return () => {
       if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
       if (dialogTimerRef.current) clearTimeout(dialogTimerRef.current);
@@ -78,7 +89,8 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
   }, []);
 
   const handleSpinTransitionEnd = useCallback(() => {
-    setBaseRotation(targetRotation);
+    const landed = wheelApiRef.current?.getRotation() ?? targetRotation;
+    setBaseRotation(landed);
     setPhase('celebrating');
 
     if (result) {
@@ -93,8 +105,16 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
     celebrationTimerRef.current = setTimeout(() => {
       setWinningIndex(null);
       setPhase('idle');
+      void loadStatus();
     }, CELEBRATION_RESUME_MS);
-  }, [targetRotation, result, onSpinComplete]);
+  }, [targetRotation, result, onSpinComplete, loadStatus]);
+
+  const abortSpin = useCallback(() => {
+    const current = wheelApiRef.current?.getRotation();
+    if (current !== undefined) setBaseRotation(current);
+    setAwaitingResult(false);
+    setPhase('idle');
+  }, []);
 
   const handleSpin = async () => {
     if (!status?.canSpinToday) {
@@ -109,40 +129,60 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
     }
     if (phase !== 'idle') return;
 
+    const extraTurns = status?.extraTurns ?? 7;
+    spinStartRotationRef.current = wheelApiRef.current?.getRotation() ?? baseRotation;
+    setAwaitingResult(true);
+    setPhase('spinning');
+
     try {
+      let challenge = challengeRef.current;
+      if (!challenge) {
+        challenge = await fetchSpinChallenge();
+      }
+      challengeRef.current = null;
+
+      const payload = challenge ? buildSpinChallengePayload(challenge) : null;
+      if (!payload) {
+        abortSpin();
+        toast.error(t('common.error'));
+        return;
+      }
+
       const res = await authFetch('/api/spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (!res.ok) {
+        abortSpin();
         toast.error(data.error ?? t('common.error'));
         return;
       }
 
       const spinResult = data as SpinResult & { spinCreditsRemaining?: number };
       const count = segments.length || 1;
-      const extraTurns = status?.extraTurns ?? 7;
+      const currentRotation = wheelApiRef.current?.getRotation() ?? spinStartRotationRef.current;
+      const landingTurns = Math.min(extraTurns, 4);
       const target = computeSpinTargetRotation(
-        baseRotation,
+        currentRotation,
         spinResult.segmentIndex,
         count,
-        extraTurns
+        landingTurns
       );
 
       setResult(spinResult);
       setWinningIndex(spinResult.segmentIndex);
       setTargetRotation(target);
-      setPhase('spinning');
+      setAwaitingResult(false);
 
       setStatus((prev) =>
         prev
           ? {
               ...prev,
-              canSpinToday: SPIN_TEST_MODE ? true : false,
-              nextSpinAt: SPIN_TEST_MODE
+              canSpinToday: prev.testMode ? true : false,
+              nextSpinAt: prev.testMode
                 ? null
                 : new Date(
                     Date.UTC(
@@ -159,8 +199,11 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
           : prev
       );
 
-      void loadStatus();
+      void fetchSpinChallenge().then((next) => {
+        if (next) challengeRef.current = next;
+      });
     } catch {
+      abortSpin();
       toast.error(t('common.error'));
     }
   };
@@ -185,6 +228,7 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
           {segments.length > 0 && (
             <SpinWheelCanvas
               ref={wheelContainerRef}
+              apiRef={wheelApiRef}
               segments={segments}
               phase={phase}
               baseRotation={baseRotation}
@@ -194,12 +238,19 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
               spinDisabled={spinDisabled}
               onSpinTransitionEnd={handleSpinTransitionEnd}
               spinDurationMs={status?.spinDurationMs}
+              awaitingResult={awaitingResult}
             />
           )}
 
           <p className="sr-only" aria-live="polite">
             {statusMessage}
           </p>
+
+          {status?.testMode && user && phase === 'idle' && (
+            <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center text-xs font-semibold uppercase tracking-widest text-amber-300">
+              Test mode — spins are not saved
+            </p>
+          )}
 
           {!user && !authLoading && (
             <p className="text-center text-xs font-bold uppercase tracking-widest text-best-cyan">
@@ -210,7 +261,7 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
             </p>
           )}
 
-          {user && !SPIN_TEST_MODE && status?.requiresPurchase && phase === 'idle' && (
+          {user && !status?.testMode && status?.requiresPurchase && phase === 'idle' && (
             <>
               <p className="max-w-sm text-center font-heading text-sm font-bold uppercase tracking-widest text-best-gold">
                 {t('spin.purchaseRequired', { min: String(status.minPurchaseIqd) })}
@@ -223,7 +274,7 @@ export default function SpinWheel({ onSpinComplete }: SpinWheelProps) {
             </>
           )}
 
-          {user && !SPIN_TEST_MODE && spunToday && phase === 'idle' && !status?.requiresPurchase && (
+          {user && !status?.testMode && spunToday && phase === 'idle' && !status?.requiresPurchase && (
             <p className="text-center font-heading text-sm font-bold uppercase tracking-widest text-best-cyan">
               {t('spin.comeBack')} {formatCountdown(dailyCountdown)}
             </p>

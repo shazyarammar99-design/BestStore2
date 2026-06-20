@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import AccountPageContent from '@/components/account/AccountPageContent';
+import AccountOverview from '@/components/account/AccountOverview';
 
 export default function AccountPage() {
   return (
@@ -10,7 +10,7 @@ export default function AccountPage() {
         </main>
       }
     >
-      <AccountPageContent />
+      <AccountOverview />
     </Suspense>
   );
 }

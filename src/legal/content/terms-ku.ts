@@ -146,9 +146,8 @@ export const TERMS_KU: LegalDocument = {
       title: '١٧. پەیوەندی',
       paragraphs: [
         `بۆ پرسیار دەربارەی ئەم مەرجانە، پەیوەندی بە ${LEGAL_ENTITY} بکە:`,
-        `واتساپ: ${LEGAL_CONTACT.whatsapp}`,
         `دیسکۆرد: ${LEGAL_CONTACT.discordUrl}`,
-        `ئیمەیڵ: ${LEGAL_CONTACT.email}`,
+        ...(LEGAL_CONTACT.email ? [`ئیمەیڵ: ${LEGAL_CONTACT.email}`] : []),
       ],
     },
   ],

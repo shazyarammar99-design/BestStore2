@@ -119,7 +119,7 @@ export default function HeroSection() {
           <div className="hero-anim" style={{ ['--hero-delay' as string]: HERO_DELAYS.headline }}>
             <h1
               ref={headlineRef}
-              className="font-display mt-6 text-4xl font-black uppercase leading-[1.1] tracking-tight text-white sm:text-5xl md:text-7xl"
+              className="font-display mt-6 text-3xl font-black uppercase leading-[1.1] tracking-tight text-white sm:text-5xl md:text-7xl"
             >
               {cmsHero?.headline ?? t('hero.headline')}
               <span className="mt-2 block text-gradient-neon">
@@ -136,18 +136,18 @@ export default function HeroSection() {
           </p>
 
           <div
-            className="hero-anim mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
+            className="hero-anim mt-10 flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row"
             style={{ ['--hero-delay' as string]: HERO_DELAYS.buttons }}
           >
             <button
               onClick={() => scrollTo(cmsHero?.primaryCtaHref ?? '#categories')}
-              className="animate-pulse-glow rounded-lg bg-best-gold px-10 py-4 font-heading text-base font-bold uppercase tracking-widest text-best-bg transition-transform duration-200 hover:scale-[1.04] hover:shadow-gold-glow-lg"
+              className="animate-pulse-glow w-full rounded-lg bg-best-gold px-6 py-3 font-heading text-sm font-bold uppercase tracking-widest text-best-bg transition-transform duration-200 hover:scale-[1.04] hover:shadow-gold-glow-lg sm:w-auto sm:px-10 sm:py-4 sm:text-base"
             >
               {cmsHero?.primaryCtaLabel ?? t('hero.browseCategories')}
             </button>
             <button
               onClick={() => scrollTo(cmsHero?.secondaryCtaHref ?? '#products')}
-              className="rounded-lg border border-best-cyan/40 bg-transparent px-10 py-4 font-heading text-base font-semibold uppercase tracking-widest text-best-cyan transition-all duration-200 hover:border-best-cyan hover:shadow-cyan-glow"
+              className="w-full rounded-lg border border-best-cyan/40 bg-transparent px-6 py-3 font-heading text-sm font-semibold uppercase tracking-widest text-best-cyan transition-all duration-200 hover:border-best-cyan hover:shadow-cyan-glow sm:w-auto sm:px-10 sm:py-4 sm:text-base"
             >
               {cmsHero?.secondaryCtaLabel ?? t('hero.viewProducts')}
             </button>

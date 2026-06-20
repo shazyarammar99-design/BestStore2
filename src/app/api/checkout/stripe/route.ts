@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { stripe, isStripeConfigured, STRIPE_CURRENCY, toStripeAmount } from '@/lib/stripe';
-import { resolvePurchaseTotals } from '@/lib/purchases/resolve';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
 import { purchaseItemSchema } from '@/lib/validation/purchases';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
 
 const stripeCheckoutSchema = z.object({
@@ -41,9 +41,62 @@ export async function POST(request: Request) {
     );
   }
 
-  const resolved = await resolvePurchaseTotals(parsed.data.items);
-  if ('error' in resolved) {
-    return NextResponse.json({ error: resolved.error }, { status: 400 });
+  const origin = request.headers.get('origin') ?? new URL(request.url).origin;
+  const orderParam = parsed.data.orderId ? `&order=${parsed.data.orderId}` : '';
+
+  if (parsed.data.orderId) {
+    const admin = createAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: 'Stripe service not configured.' }, { status: 503 });
+    }
+
+    const { data: order, error: orderError } = await admin
+      .from('orders')
+      .select('id, amount, items_json')
+      .eq('id', parsed.data.orderId)
+      .maybeSingle();
+
+    if (orderError || !order) {
+      return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+    }
+
+    const finalAmount = Number(order.amount);
+    const items = (order.items_json ?? []) as Array<{
+      productName: string;
+      variantLabel?: string;
+      quantity: number;
+    }>;
+
+    const summaryName =
+      items.length === 1
+        ? items[0].variantLabel
+          ? `${items[0].productName} — ${items[0].variantLabel}`
+          : items[0].productName
+        : `Order ${parsed.data.orderId.slice(0, 8).toUpperCase()}`;
+
+    try {
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: STRIPE_CURRENCY,
+              unit_amount: toStripeAmount(finalAmount),
+              product_data: { name: summaryName },
+            },
+          },
+        ],
+        success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}&method=stripe${orderParam}`,
+        cancel_url: `${origin}/checkout`,
+        metadata: { order_id: parsed.data.orderId },
+      });
+
+      return NextResponse.json({ url: session.url });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Stripe checkout failed.';
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
   }
 
   const lineItems: { name: string; variantLabel?: string; price: number; quantity: number }[] = [];
@@ -76,9 +129,6 @@ export async function POST(request: Request) {
       quantity: item.quantity,
     });
   }
-
-  const origin = request.headers.get('origin') ?? new URL(request.url).origin;
-  const orderParam = parsed.data.orderId ? `&order=${parsed.data.orderId}` : '';
 
   try {
     const session = await stripe.checkout.sessions.create({

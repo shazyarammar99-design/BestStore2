@@ -149,9 +149,8 @@ export const TERMS_EN: LegalDocument = {
       title: '17. Contact',
       paragraphs: [
         `For questions about these Terms, contact ${LEGAL_ENTITY}:`,
-        `WhatsApp: ${LEGAL_CONTACT.whatsapp}`,
         `Discord: ${LEGAL_CONTACT.discordUrl}`,
-        `Email: ${LEGAL_CONTACT.email}`,
+        ...(LEGAL_CONTACT.email ? [`Email: ${LEGAL_CONTACT.email}`] : []),
       ],
     },
   ],
