@@ -10,6 +10,7 @@ import LanguageSelect from '@/components/LanguageSelect';
 import ProfileDropdown from '@/components/account/ProfileDropdown';
 import AccountMobileMenu from '@/components/account/AccountMobileMenu';
 import { NavMegaMenuDesktop, NavMegaMenuMobile } from '@/components/NavMegaMenu';
+import GlobalSearch from '@/components/GlobalSearch';
 import { CATEGORY_MENU, PRODUCT_MENU } from '@/data/navigation';
 import type { NavItem } from '@/data/navigation';
 import { useStore } from '@/context/StoreContext';
@@ -65,6 +66,7 @@ export default function Navigation() {
   return (
     <>
       <header
+        dir="ltr"
         className={`fixed left-0 right-0 top-0 z-50 border-b transition-all duration-300 ${
           scrolled
             ? 'border-best-border bg-best-bg/95 backdrop-blur-md'
@@ -85,28 +87,24 @@ export default function Navigation() {
             <LogoBrand />
           </div>
 
-          <nav className="hidden items-center gap-8 lg:flex">
-            <NavMegaMenuDesktop
-              label={t('nav.categories')}
-              items={categoryMenu}
-              onSelect={handleNavSelect}
-            />
-            <NavMegaMenuDesktop
-              label={t('nav.products')}
-              items={productMenu}
-              onSelect={handleNavSelect}
-            />
+          <nav className="hidden flex-1 items-center justify-center px-8 lg:flex">
+            <div className="w-full max-w-2xl">
+              <GlobalSearch />
+            </div>
+          </nav>
+
+          <nav className="hidden items-center gap-6 lg:flex">
             <Link
               href="/leaderboard"
               className="font-heading text-sm font-semibold uppercase tracking-widest text-best-muted transition-colors hover:text-best-cyan"
             >
-              {t('nav.leaderboard')}
+              {t('nav.leaderboard') !== 'nav.leaderboard' ? t('nav.leaderboard') : 'Leaderboard'}
             </Link>
             <Link
               href="/spin"
               className="font-heading text-sm font-semibold uppercase tracking-widest text-best-muted transition-colors hover:text-best-gold"
             >
-              {t('nav.spinWin')}
+              {t('nav.spinWin') !== 'nav.spinWin' ? t('nav.spinWin') : 'Spin & Win'}
             </Link>
           </nav>
 
@@ -122,9 +120,13 @@ export default function Navigation() {
                 className="hidden items-center gap-1.5 rounded-lg border border-best-border px-3 py-2 font-heading text-sm font-semibold text-best-muted transition-colors hover:border-best-cyan hover:text-best-cyan sm:flex"
               >
                 <LogIn className="h-4 w-4" />
-                {t('nav.login')}
+                {t('nav.login') !== 'nav.login' ? t('nav.login') : 'Login'}
               </Link>
             ) : null}
+
+            <div className="block lg:hidden">
+              <GlobalSearch isMobile={true} />
+            </div>
 
             <button
               type="button"
@@ -153,7 +155,7 @@ export default function Navigation() {
       </header>
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-best-bg/98 px-6 pt-20 backdrop-blur-md lg:hidden">
+        <div className="fixed inset-0 z-40 flex flex-col items-center justify-start gap-6 bg-best-bg/98 px-6 pt-24 backdrop-blur-md lg:hidden overflow-y-auto pb-10">
           <div className="flex items-center gap-3">
             <CurrencySelect className="flex h-10 min-w-[5.5rem] rounded-lg border-best-border bg-transparent font-heading text-xs font-semibold text-best-muted shadow-none hover:border-best-cyan hover:text-best-cyan" />
             <LanguageSelect className="flex h-10 min-w-[6.5rem] rounded-lg border-best-border bg-transparent font-heading text-xs font-semibold text-best-muted shadow-none hover:border-best-cyan hover:text-best-cyan" />

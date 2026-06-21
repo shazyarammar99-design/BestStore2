@@ -89,7 +89,7 @@ export default function NewReleaseCarousel() {
 
         <Carousel
           setApi={setApi}
-          opts={{ align: 'start', loop: true, direction: 'ltr' }}
+          opts={{ align: 'start', loop: true }}
           className="relative"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => {
