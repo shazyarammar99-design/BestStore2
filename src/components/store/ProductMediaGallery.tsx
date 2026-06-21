@@ -75,7 +75,7 @@ export default function ProductMediaGallery({
     if (!thumbContainerRef.current) return;
     const scrollAmount = 80;
     thumbContainerRef.current.scrollBy({
-      top: direction === 'up' ? -scrollAmount : scrollAmount,
+      left: direction === 'up' ? -scrollAmount : scrollAmount,
       behavior: 'smooth',
     });
   }, []);
@@ -112,21 +112,27 @@ export default function ProductMediaGallery({
   const activeItem = items[activeIndex] ?? items[0];
 
   return (
-    <div className="flex gap-3">
+    <div className="flex flex-col gap-3">
+      {/* Main viewer */}
+      <div className="relative w-full overflow-hidden rounded-2xl border border-best-border bg-gradient-to-br from-best-purple/25 via-best-surface to-best-cyan/10">
+        <MediaViewer item={activeItem} productName={productName} />
+      </div>
+
       {/* Thumbnail strip */}
-      <div className="flex w-[72px] shrink-0 flex-col items-center gap-1.5">
+      <div className="flex items-center gap-1.5">
         <button
           type="button"
-          onClick={() => scrollThumbs('up')}
-          className="flex h-6 w-full items-center justify-center rounded-md border border-best-border bg-best-elevated text-best-muted transition-colors hover:text-best-cyan"
-          aria-label="Scroll thumbnails up"
+          onClick={() => scrollThumbs('up')} // Using 'up' to mean 'left' logically in our refactored scroll, or we can just scroll left
+          className="flex h-full w-6 items-center justify-center rounded-md border border-best-border bg-best-elevated text-best-muted transition-colors hover:text-best-cyan"
+          aria-label="Scroll thumbnails left"
+          style={{ minHeight: '64px' }}
         >
-          <ChevronUp className="h-4 w-4" />
+          <ChevronUp className="h-4 w-4 -rotate-90" />
         </button>
 
         <div
           ref={thumbContainerRef}
-          className="flex max-h-[340px] flex-col gap-1.5 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-best-border"
+          className="flex max-w-full flex-1 gap-1.5 overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-best-border"
           style={{ scrollbarWidth: 'thin' }}
         >
           {items.map((item, i) => (
@@ -171,17 +177,13 @@ export default function ProductMediaGallery({
 
         <button
           type="button"
-          onClick={() => scrollThumbs('down')}
-          className="flex h-6 w-full items-center justify-center rounded-md border border-best-border bg-best-elevated text-best-muted transition-colors hover:text-best-cyan"
-          aria-label="Scroll thumbnails down"
+          onClick={() => scrollThumbs('down')} // 'down' means 'right'
+          className="flex h-full w-6 items-center justify-center rounded-md border border-best-border bg-best-elevated text-best-muted transition-colors hover:text-best-cyan"
+          aria-label="Scroll thumbnails right"
+          style={{ minHeight: '64px' }}
         >
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="h-4 w-4 -rotate-90" />
         </button>
-      </div>
-
-      {/* Main viewer */}
-      <div className="relative flex-1 overflow-hidden rounded-2xl border border-best-border bg-gradient-to-br from-best-purple/25 via-best-surface to-best-cyan/10">
-        <MediaViewer item={activeItem} productName={productName} />
       </div>
     </div>
   );
@@ -215,6 +217,10 @@ function MediaViewer({
           allowFullScreen
           className="absolute inset-0 h-full w-full rounded-2xl"
         />
+        {/* Overlay text for YouTube video */}
+        <div className="pointer-events-none absolute left-4 top-4 z-10 rounded bg-black/60 px-3 py-1.5 backdrop-blur-sm">
+          <span className="font-heading text-sm font-bold text-white shadow-sm">{productName} Video</span>
+        </div>
       </div>
     );
   }
@@ -227,9 +233,11 @@ function MediaViewer({
         playsInline
         className="absolute inset-0 h-full w-full rounded-2xl object-contain bg-black"
         preload="metadata"
-      >
-        <track kind="captions" />
-      </video>
+      />
+      {/* Overlay text for video */}
+      <div className="pointer-events-none absolute left-4 top-4 z-10 rounded bg-black/60 px-3 py-1.5 backdrop-blur-sm">
+        <span className="font-heading text-sm font-bold text-white shadow-sm">{productName} Preview</span>
+      </div>
     </div>
   );
 }

@@ -38,10 +38,11 @@ export async function POST(request: Request) {
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? (isVideo ? 'mp4' : 'png');
   const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await auth.ctx.admin.storage.from('site-assets').upload(path, buffer, {
-    contentType: file.type,
+    contentType: file.type || (isVideo ? 'video/mp4' : 'image/png'),
     upsert: false,
   });
 

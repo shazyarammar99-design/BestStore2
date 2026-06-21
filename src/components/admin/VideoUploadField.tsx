@@ -13,6 +13,17 @@ type VideoUploadFieldProps = {
   onChange: (url: string) => void;
 };
 
+function isYouTubeUrl(url: string): boolean {
+  return /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)/.test(url);
+}
+
+function getYouTubeEmbedUrl(url: string): string {
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+}
+
 export default function VideoUploadField({
   label = 'Video',
   value,
@@ -45,7 +56,15 @@ export default function VideoUploadField({
     <div className="space-y-2">
       <Label>{label}</Label>
       {value && (
-        <video src={value} controls className="max-h-40 w-full rounded-lg border border-best-border" />
+        isYouTubeUrl(value) ? (
+          <iframe
+            src={getYouTubeEmbedUrl(value)}
+            className="aspect-video w-full rounded-lg border border-best-border"
+            allowFullScreen
+          />
+        ) : (
+          <video src={value} controls className="max-h-40 w-full rounded-lg border border-best-border" />
+        )
       )}
       <div className="flex gap-2">
         <Input

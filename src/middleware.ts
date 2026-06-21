@@ -20,8 +20,8 @@ function buildCsp(): string {
   ].join(' ');
 
   const frameSrc = adsenseEnabled
-    ? "'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com"
-    : "'self'";
+    ? "'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.youtube.com https://www.youtube-nocookie.com"
+    : "'self' https://www.youtube.com https://www.youtube-nocookie.com";
 
   const imgSrc = [
     "'self'",
@@ -31,12 +31,20 @@ function buildCsp(): string {
     ...(adsenseEnabled ? ['https://pagead2.googlesyndication.com'] : []),
   ].join(' ');
 
+  const mediaSrc = [
+    "'self'",
+    'https://*.supabase.co',
+    'blob:',
+    'data:',
+  ].join(' ');
+
   return [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `font-src 'self' https://fonts.gstatic.com data:`,
     `img-src ${imgSrc}`,
+    `media-src ${mediaSrc}`,
     `frame-src ${frameSrc}`,
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
     "object-src 'none'",
