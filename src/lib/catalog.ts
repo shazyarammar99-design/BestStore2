@@ -263,6 +263,49 @@ async function fetchProductBySlug(slug: string): Promise<ProductWithVariants | n
   };
 }
 
+async function fetchProductById(id: string): Promise<ProductWithVariants | null> {
+  const client = getCatalogClient();
+
+  if (!client) {
+    const p = fallbackProducts().find((x) => x.id === id);
+    if (!p) return null;
+    const category = fallbackCategories().find((c) => c.id === p.category_id) ?? null;
+    return { ...p, variants: fallbackVariants(p.slug), category };
+  }
+
+  const { data: product, error } = await client
+    .from('products')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error || !product) {
+    const p = fallbackProducts().find((x) => x.id === id);
+    if (!p) return null;
+    const category = fallbackCategories().find((c) => c.id === p.category_id) ?? null;
+    return { ...p, variants: fallbackVariants(p.slug), category };
+  }
+
+  const [{ data: variants }, { data: category }] = await Promise.all([
+    client
+      .from('product_variants')
+      .select('*')
+      .eq('product_id', (product as Product).id)
+      .order('price', { ascending: true }),
+    client
+      .from('categories')
+      .select('*')
+      .eq('id', (product as Product).category_id)
+      .maybeSingle(),
+  ]);
+
+  return {
+    ...(product as Product),
+    variants: (variants as ProductVariant[]) ?? [],
+    category: (category as Category) ?? null,
+  };
+}
+
 const cachedCategories = unstable_cache(fetchCategories, ['catalog-categories'], {
   revalidate: 60,
 });
@@ -298,6 +341,12 @@ export async function getProductsByCategorySlug(slug: string): Promise<Product[]
 
 export const getProductBySlug = cache(async (slug: string) =>
   unstable_cache(() => fetchProductBySlug(slug), ['catalog-product', slug], {
+    revalidate: 60,
+  })()
+);
+
+export const getProductById = cache(async (id: string) =>
+  unstable_cache(() => fetchProductById(id), ['catalog-product-id', id], {
     revalidate: 60,
   })()
 );

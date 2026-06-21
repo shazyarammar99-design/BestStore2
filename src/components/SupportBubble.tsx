@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { usePathname } from 'next/navigation';
 import { MessageCircle, X } from 'lucide-react';
 import { SUPPORT_DISCORD_URL } from '@/config/contact';
 import { useTranslation } from '@/context/LocaleContext';
@@ -14,6 +15,10 @@ export default function SupportBubble() {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
   const { t, ui } = useTranslation();
+  const pathname = usePathname();
+
+  const isProductPage = pathname?.startsWith('/product/');
+  const positionClass = isProductPage ? 'bottom-28 lg:bottom-6 right-4' : 'bottom-6 right-4';
 
   const sendMessage = (text: string) => {
     const trimmed = text.trim();
@@ -34,7 +39,7 @@ export default function SupportBubble() {
     <>
       {open && (
         <div
-          className="fixed bottom-6 right-4 z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-best-border bg-best-bg shadow-purple-glow"
+          className={`fixed ${positionClass} z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-best-border bg-best-bg shadow-purple-glow`}
           role="dialog"
           aria-label="Best Store support chat"
         >
@@ -106,7 +111,7 @@ export default function SupportBubble() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open support chat"
-          className="fixed bottom-6 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-best-purple text-white shadow-purple-glow transition-all duration-300 hover:scale-105 hover:shadow-purple-glow-lg"
+          className={`fixed ${positionClass} z-50 flex h-14 w-14 items-center justify-center rounded-full bg-best-purple text-white shadow-purple-glow transition-all duration-300 hover:scale-105 hover:shadow-purple-glow-lg`}
         >
           <MessageCircle className="h-6 w-6" />
         </button>

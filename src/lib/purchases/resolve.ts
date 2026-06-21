@@ -1,4 +1,4 @@
-import { getProductBySlug } from '@/lib/catalog';
+import { getProductById } from '@/lib/catalog';
 import type { RecordPurchaseRequest } from '@/lib/validation/purchases';
 
 /** 1 leaderboard point per 1,000 IQD spent. */
@@ -12,7 +12,7 @@ export async function resolvePurchaseTotals(
   let amount = 0;
 
   for (const item of items) {
-    const product = await getProductBySlug(item.productId);
+    const product = await getProductById(item.productId);
     if (!product) {
       return { error: `Unknown product: ${item.productId}` };
     }

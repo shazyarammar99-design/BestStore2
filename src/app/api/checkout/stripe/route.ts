@@ -102,8 +102,8 @@ export async function POST(request: Request) {
   const lineItems: { name: string; variantLabel?: string; price: number; quantity: number }[] = [];
 
   for (const item of parsed.data.items) {
-    const { getProductBySlug } = await import('@/lib/catalog');
-    const product = await getProductBySlug(item.productId);
+    const { getProductById } = await import('@/lib/catalog');
+    const product = await getProductById(item.productId);
     if (!product) {
       return NextResponse.json({ error: `Unknown product: ${item.productId}` }, { status: 400 });
     }
