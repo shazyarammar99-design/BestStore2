@@ -31,12 +31,16 @@ export async function updateSession(request: NextRequest) {
 export async function guardAdminRoute(request: NextRequest): Promise<NextResponse | null> {
   const { pathname } = request.nextUrl;
 
-  if (!pathname.startsWith('/admin')) return null;
+  const isApi = pathname.startsWith('/api/admin');
+  if (!pathname.startsWith('/admin') && !isApi) return null;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anonKey) {
-    return NextResponse.redirect(new URL('/login?redirect=/admin', request.url));
+    if (isApi) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const login = new URL('/login', request.url);
+    login.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(login);
   }
 
   const supabase = createServerClient(url, anonKey, {
@@ -53,6 +57,7 @@ export async function guardAdminRoute(request: NextRequest): Promise<NextRespons
   } = await supabase.auth.getUser();
 
   if (!user) {
+    if (isApi) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const login = new URL('/login', request.url);
     login.searchParams.set('redirect', pathname);
     return NextResponse.redirect(login);
@@ -62,6 +67,7 @@ export async function guardAdminRoute(request: NextRequest): Promise<NextRespons
 
   const allowed = await isAdminUser(user);
   if (!allowed) {
+    if (isApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     const home = new URL('/', request.url);
     home.searchParams.set('error', 'admin_forbidden');
     return NextResponse.redirect(home);
