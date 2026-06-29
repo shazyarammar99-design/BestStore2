@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import AppShell from '@/components/AppShell';
 import { getBrandingSettings } from '@/lib/site-settings';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -52,6 +53,7 @@ export default function RootLayout({
       </head>
       <body>
         <AppShell>{children}</AppShell>
+        <SpeedInsights />
       </body>
     </html>
   );
