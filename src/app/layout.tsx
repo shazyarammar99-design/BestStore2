@@ -20,6 +20,18 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       'The premium marketplace for in-game currency, elite accounts, and digital assets — delivered instantly with local IQD payments.',
     icons,
+    openGraph: {
+      title: `${branding.siteName} — Premium Gaming Marketplace`,
+      description: 'The premium marketplace for in-game currency, elite accounts, and digital assets — delivered instantly with local IQD payments.',
+      images: ['/og.png'],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${branding.siteName} — Premium Gaming Marketplace`,
+      description: 'The premium marketplace for in-game currency, elite accounts, and digital assets — delivered instantly with local IQD payments.',
+      images: ['/og.png'],
+    },
   };
 }
 

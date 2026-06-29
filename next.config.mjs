@@ -53,6 +53,7 @@ const nextConfig = {
       bodySizeLimit: '500mb',
     },
   },
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
