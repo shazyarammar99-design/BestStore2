@@ -26,6 +26,7 @@ type Variant = {
   plan_type: string | null;
   duration: string | null;
   price: number;
+  compare_at_price?: number | null;
   stock: number;
   _delete?: boolean;
 };
@@ -39,6 +40,7 @@ type Product = {
   video_url: string | null;
   gallery_images: string[];
   base_price: number;
+  compare_at_price?: number | null;
   popularity: number;
   is_featured: boolean;
   category_id: string;
@@ -247,14 +249,6 @@ export default function AdminProductEditPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={product.is_featured}
-            onCheckedChange={(v) => setProduct({ ...product, is_featured: v })}
-          />
-          <Label>Featured</Label>
-        </div>
-
         <div>
           <div className="mb-2 flex items-center justify-between">
             <Label>Variants</Label>
@@ -287,17 +281,30 @@ export default function AdminProductEditPage() {
                       className="bg-best-bg"
                       placeholder="Duration"
                     />
-                    <Input
-                      type="number"
-                      value={v.price}
-                      onChange={(e) => {
-                        const next = [...variants];
-                        next[i] = { ...v, price: Number(e.target.value) };
-                        setVariants(next);
-                      }}
-                      className="bg-best-bg"
-                      placeholder="Price"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        value={v.compare_at_price || ''}
+                        onChange={(e) => {
+                          const next = [...variants];
+                          next[i] = { ...v, compare_at_price: e.target.value ? Number(e.target.value) : null };
+                          setVariants(next);
+                        }}
+                        className="bg-best-bg line-through text-best-muted"
+                        placeholder="Original Price"
+                      />
+                      <Input
+                        type="number"
+                        value={v.price}
+                        onChange={(e) => {
+                          const next = [...variants];
+                          next[i] = { ...v, price: Number(e.target.value) };
+                          setVariants(next);
+                        }}
+                        className="bg-best-bg text-best-cyan"
+                        placeholder="Discount Price"
+                      />
+                    </div>
                     <Input
                       type="number"
                       value={v.stock}

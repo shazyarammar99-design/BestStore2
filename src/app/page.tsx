@@ -5,15 +5,25 @@ import HeroSection from '@/sections/HeroSection';
 import TrustBar from '@/sections/TrustBar';
 import HowItWorks from '@/sections/HowItWorks';
 import FAQ from '@/sections/FAQ';
-import { getCategories, getFeaturedProducts } from '@/lib/catalog';
+import FeaturedBento from '@/sections/FeaturedBento';
+import { getCategories, getFeaturedProducts, getFeaturedBentoConfig, getProducts } from '@/lib/catalog';
 
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [categories, products] = await Promise.all([
+  const [categories, allProducts, bentoConfig] = await Promise.all([
     getCategories(),
-    getFeaturedProducts(),
+    getProducts(),
+    getFeaturedBentoConfig(),
   ]);
+
+  // Map bento config to full products
+  const bentoItems = bentoConfig.map(config => {
+    const product = allProducts.find(p => p.id === config.productId);
+    return product ? { product, gridClasses: config.gridClasses } : null;
+  }).filter(Boolean) as { product: any; gridClasses: string }[];
+
+
 
   return (
     <>
@@ -22,7 +32,7 @@ export default async function HomePage() {
       <NewReleaseCarousel />
       <TrustBar />
       <HomeCategoriesSection categories={categories} />
-      <HomeProductsSection products={products} />
+      <FeaturedBento bentoItems={bentoItems} products={[]} />
       <HowItWorks />
       <FAQ />
     </>

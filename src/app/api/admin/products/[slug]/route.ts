@@ -9,12 +9,18 @@ type Params = { params: Promise<{ slug: string }> };
 async function syncMinPrice(admin: SupabaseClient, productId: string) {
   const { data: variantRows } = await admin
     .from('product_variants')
-    .select('price')
+    .select('price, compare_at_price')
     .eq('product_id', productId);
 
   if (variantRows?.length) {
     const minPrice = Math.min(...variantRows.map((r) => Number(r.price)));
-    await admin.from('products').update({ base_price: minPrice }).eq('id', productId);
+    const comparePrices = variantRows.map((r) => r.compare_at_price).filter((p) => p != null).map(Number);
+    const minCompare = comparePrices.length > 0 ? Math.min(...comparePrices) : null;
+    
+    await admin.from('products').update({ 
+      base_price: minPrice,
+      compare_at_price: minCompare
+    }).eq('id', productId);
   }
 }
 
@@ -66,6 +72,7 @@ export async function PATCH(request: Request, { params }: Params) {
     'video_url',
     'gallery_images',
     'base_price',
+    'compare_at_price',
     'popularity',
     'is_featured',
     'category_id',
@@ -100,6 +107,7 @@ export async function PATCH(request: Request, { params }: Params) {
           plan_type: v.plan_type ?? null,
           duration: v.duration ?? null,
           price: Number(v.price ?? 0),
+          compare_at_price: v.compare_at_price != null ? Number(v.compare_at_price) : null,
           stock: Number(v.stock ?? 999),
         });
         continue;
@@ -107,7 +115,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
       if (!v.id) continue;
       const vUpdates: Record<string, unknown> = {};
-      for (const key of ['plan_type', 'duration', 'price', 'stock'] as const) {
+      for (const key of ['plan_type', 'duration', 'price', 'compare_at_price', 'stock'] as const) {
         if (key in v) vUpdates[key] = v[key];
       }
       if (Object.keys(vUpdates).length) {

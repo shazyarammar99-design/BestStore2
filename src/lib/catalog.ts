@@ -23,6 +23,7 @@ export type ProductVariant = {
   plan_type: string | null;
   duration: string | null;
   price: number;
+  compare_at_price?: number | null;
   stock: number;
 };
 
@@ -36,6 +37,7 @@ export type Product = {
   video_url: string | null;
   gallery_images: string[];
   base_price: number;
+  compare_at_price?: number | null;
   rating: number;
   review_count: number;
   popularity: number;
@@ -204,6 +206,25 @@ async function fetchFeaturedProducts(): Promise<Product[]> {
   return applyMinVariantPrices(client, data as Product[]);
 }
 
+export type BentoConfigItem = {
+  productId: string;
+  gridClasses: string;
+};
+
+async function fetchFeaturedBentoConfig(): Promise<BentoConfigItem[]> {
+  const client = getCatalogClient();
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'featured_bento')
+    .maybeSingle();
+
+  if (error || !data) return [];
+  return (data.value as BentoConfigItem[]) || [];
+}
+
 async function fetchProductsByCategoryId(categoryId: string): Promise<Product[]> {
   const client = getCatalogClient();
   if (!client) {
@@ -324,6 +345,10 @@ export const getProducts = cache(async () =>
 
 export const getFeaturedProducts = cache(async () =>
   unstable_cache(fetchFeaturedProducts, ['catalog-featured'], { revalidate: 60 })()
+);
+
+export const getFeaturedBentoConfig = cache(async () =>
+  unstable_cache(fetchFeaturedBentoConfig, ['catalog-featured-bento-config'], { revalidate: 60 })()
 );
 
 export const getProductsByCategoryId = cache(async (categoryId: string) =>
