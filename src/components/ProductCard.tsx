@@ -47,8 +47,10 @@ export default function ProductCard({ product: rawProduct }: { product: Product 
 
   return (
     <>
-      <Card className="flex flex-col border-best-border bg-best-elevated transition-all duration-300 hover:-translate-y-1 hover:border-best-cyan/60 hover:shadow-cyan-glow">
-        <CardHeader className="pb-3">
+      <Card className="group relative flex flex-col overflow-hidden border border-white/5 bg-best-elevated/80 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:border-best-purple/50 hover:shadow-purple-glow-lg">
+        <div className="pointer-events-none absolute inset-0 z-0 rounded-xl border border-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <div className="relative z-10 flex flex-1 flex-col">
+          <CardHeader className="pb-3">
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between">
             <CardTitle className="font-heading text-base font-bold text-white sm:text-lg">
               {product.name}
@@ -84,6 +86,7 @@ export default function ProductCard({ product: rawProduct }: { product: Product 
             </button>
           </div>
         </CardFooter>
+        </div>
       </Card>
 
       {hasVariants && (

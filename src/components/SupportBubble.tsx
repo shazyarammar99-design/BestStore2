@@ -39,11 +39,11 @@ export default function SupportBubble() {
     <>
       {open && (
         <div
-          className={`fixed ${positionClass} z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-best-border bg-best-bg shadow-purple-glow`}
+          className={`fixed ${positionClass} z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-best-border bg-best-bg shadow-amber-glow`}
           role="dialog"
           aria-label="Best Store support chat"
         >
-          <div className="flex items-center justify-between bg-best-purple px-4 py-3">
+          <div className="flex items-center justify-between bg-best-amber px-4 py-3">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
                 <MessageCircle className="h-5 w-5 text-white" />
@@ -111,7 +111,7 @@ export default function SupportBubble() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open support chat"
-          className={`fixed ${positionClass} z-50 flex h-14 w-14 items-center justify-center rounded-full bg-best-purple text-white shadow-purple-glow transition-all duration-300 hover:scale-105 hover:shadow-purple-glow-lg`}
+          className={`fixed ${positionClass} z-50 flex h-14 w-14 items-center justify-center rounded-full bg-best-amber text-white shadow-amber-glow transition-all duration-300 hover:scale-105 hover:shadow-amber-glow-lg`}
         >
           <MessageCircle className="h-6 w-6" />
         </button>

@@ -70,7 +70,36 @@ export default function CategoriesGrid() {
           subtitle={t('sections.browseAll')}
         />
 
-        <div ref={gridRef} className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+        {/* Orb-style Quick Platforms / Categories */}
+        <div className="mt-10 flex w-full items-center gap-4 overflow-x-auto pb-4 scrollbar-hide">
+          {CATEGORIES.map((raw) => {
+            const category = localizeCategory({ ...raw, slug: raw.id }, locale);
+            const Icon = ICON_MAP[category.id] || Coins;
+            const accent = CATEGORY_COLORS[category.id] || '#00F0FF';
+            return (
+              <button
+                key={`orb-${category.id}`}
+                onClick={scrollToProducts}
+                className="group relative flex shrink-0 flex-col items-center justify-center gap-3 transition-all duration-300 hover:-translate-y-1"
+              >
+                <div
+                  className="relative flex h-16 w-16 items-center justify-center rounded-full border border-white/5 bg-best-elevated/80 shadow-lg backdrop-blur-md transition-all duration-300 group-hover:border-white/20"
+                >
+                  <div
+                    className="pointer-events-none absolute inset-0 rounded-full opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-30"
+                    style={{ background: accent }}
+                  />
+                  <Icon className="relative z-10 h-7 w-7 transition-colors duration-300" style={{ color: accent }} />
+                </div>
+                <span className="font-heading text-xs font-semibold tracking-wider text-best-muted transition-colors group-hover:text-white">
+                  {category.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div ref={gridRef} className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {CATEGORIES.map((raw) => {
             const category = localizeCategory({ ...raw, slug: raw.id }, locale);
             const Icon = ICON_MAP[category.id] || Coins;

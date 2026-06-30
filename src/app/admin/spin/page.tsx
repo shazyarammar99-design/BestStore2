@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Save } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, Wand2 } from 'lucide-react';
 import { adminFetch } from '@/lib/admin-fetch';
 import { DEFAULT_SPIN_SETTINGS, type SpinSettings } from '@/types/site-settings';
 import { Button } from '@/components/ui/button';
@@ -156,13 +156,93 @@ export default function AdminSpinPage() {
   };
 
   const removePrize = async (id: string) => {
-    if (!confirm('Deactivate this prize? It will be removed from the wheel.')) return;
+    if (!confirm('Delete this prize? It will be removed from the wheel.')) return;
+    
+    setLoading(true);
     const res = await adminFetch(`/api/admin/spin/prizes/${id}`, { method: 'DELETE' });
     if (!res.ok) {
       toast.error('Failed to remove prize');
+      setLoading(false);
       return;
     }
-    toast.success('Prize deactivated');
+    
+    // Auto-fix weights for the remaining active prizes
+    const remainingActive = prizes.filter((p) => p.active && p.id !== id);
+    const currentTotal = remainingActive.reduce((s, p) => s + p.probability_weight, 0);
+    
+    if (currentTotal > 0 && remainingActive.length > 0) {
+      for (const p of remainingActive) {
+        let newWeight = (p.probability_weight / currentTotal) * 100;
+        newWeight = Math.round(newWeight * 100) / 100;
+        
+        await adminFetch(`/api/admin/spin/prizes/${p.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: p.name,
+            probability_weight: newWeight,
+            value: p.value,
+            image_url: p.image_url || null,
+            active: p.active,
+            prize_type: p.prize_type,
+          }),
+        });
+      }
+      toast.success('Prize deleted and weights auto-fixed to 100');
+    } else {
+      toast.success('Prize deleted');
+    }
+    
+    load();
+  };
+
+  const autoFixWeights = async () => {
+    const activePrizes = prizes.filter((p) => p.active);
+    const currentTotal = activePrizes.reduce((s, p) => s + p.probability_weight, 0);
+
+    if (currentTotal === 0) {
+      toast.error('Total weight is 0. Cannot auto-fix.');
+      return;
+    }
+    
+    if (currentTotal === 100) {
+      toast.info('Weights already sum to 100!');
+      return;
+    }
+
+    if (!confirm('This will adjust all active prize weights so they sum exactly to 100. Continue?')) return;
+
+    setLoading(true);
+    let successCount = 0;
+
+    for (const p of activePrizes) {
+      let newWeight = (p.probability_weight / currentTotal) * 100;
+      newWeight = Math.round(newWeight * 100) / 100; // Keep up to 2 decimal places
+
+      const payload = {
+        name: p.name,
+        probability_weight: newWeight,
+        value: p.value,
+        image_url: p.image_url || null,
+        active: p.active,
+        prize_type: p.prize_type,
+      };
+
+      const res = await adminFetch(`/api/admin/spin/prizes/${p.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) successCount++;
+    }
+
+    if (successCount === activePrizes.length) {
+      toast.success('Weights auto-fixed to 100');
+    } else {
+      toast.warning(`Updated ${successCount} out of ${activePrizes.length} prizes`);
+    }
+
     load();
   };
 
@@ -263,40 +343,40 @@ export default function AdminSpinPage() {
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-heading text-lg font-bold text-white">Prizes</h2>
-          <Button size="sm" onClick={openNew}>
-            <Plus className="mr-1 h-4 w-4" /> Add prize
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="secondary" onClick={autoFixWeights} disabled={prizes.length === 0}>
+              <Wand2 className="mr-1 h-4 w-4" /> Auto-fix weights
+            </Button>
+            <Button size="sm" onClick={openNew}>
+              <Plus className="mr-1 h-4 w-4" /> Add prize
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-2">
-          {prizes.map((p) => (
+          {prizes.filter(p => p.active).map((p) => (
             <div
               key={p.id}
-              className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-best-border bg-best-elevated p-3 ${
-                !p.active ? 'opacity-50' : ''
-              }`}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-best-border bg-best-elevated p-3"
             >
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-white">{p.name}</p>
                 <p className="text-xs text-best-muted">
                   Weight {p.probability_weight} · {p.winPercent}% chance · Value {p.value} ·{' '}
                   {p.prize_type.replace('_', ' ')}
-                  {!p.active && ' · Inactive'}
                 </p>
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => openEdit(p)}>
                   <Pencil className="h-4 w-4" />
                 </Button>
-                {p.active && (
-                  <Button size="sm" variant="outline" onClick={() => removePrize(p.id)}>
-                    <Trash2 className="h-4 w-4 text-red-400" />
-                  </Button>
-                )}
+                <Button size="sm" variant="outline" onClick={() => removePrize(p.id)}>
+                  <Trash2 className="h-4 w-4 text-red-400" />
+                </Button>
               </div>
             </div>
           ))}
-          {prizes.length === 0 && (
+          {prizes.filter(p => p.active).length === 0 && (
             <p className="text-sm text-best-muted">No prizes yet. Add your first prize.</p>
           )}
         </div>

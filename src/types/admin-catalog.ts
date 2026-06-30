@@ -6,6 +6,7 @@ export type CatalogProduct = {
   description: string | null;
   base_image: string | null;
   base_price: number;
+  compare_at_price?: number | null;
   popularity: number;
   is_featured: boolean;
 };

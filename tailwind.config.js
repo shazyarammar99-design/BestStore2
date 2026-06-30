@@ -62,6 +62,8 @@ module.exports = {
           cyan: '#00F0FF',
           purple: '#B026FF',
           gold: '#FFD700',
+          amber: '#F59E0B',
+          orange: '#F97316',
           text: '#FFFFFF',
           muted: '#8B93A7',
           caption: '#5E6678',
@@ -85,6 +87,8 @@ module.exports = {
         'purple-glow-lg': '0 0 50px rgba(176, 38, 255, 0.45)',
         'gold-glow': '0 0 30px rgba(255, 215, 0, 0.3)',
         'gold-glow-lg': '0 0 45px rgba(255, 215, 0, 0.5)',
+        'amber-glow': '0 0 30px rgba(245, 158, 11, 0.3)',
+        'amber-glow-lg': '0 0 50px rgba(245, 158, 11, 0.45)',
       },
       keyframes: {
         "accordion-down": {
@@ -127,6 +131,14 @@ module.exports = {
           "0%": { transform: "translateX(120%)", opacity: "0" },
           "100%": { transform: "translateX(0)", opacity: "1" },
         },
+        "slide-out-right": {
+          "0%": { transform: "translateX(0)", opacity: "1" },
+          "100%": { transform: "translateX(100%)", opacity: "0" },
+        },
+        "drawer-in": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -139,6 +151,8 @@ module.exports = {
         "float": "float 4s ease-in-out infinite",
         "ticker": "ticker 25s linear infinite",
         "slide-in-right": "slide-in-right 0.45s ease-out",
+        "slide-out-right": "slide-out-right 0.3s ease-in",
+        "drawer-in": "drawer-in 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },
